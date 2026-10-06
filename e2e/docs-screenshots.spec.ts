@@ -17,12 +17,14 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(page.locator('.doc-code-body .shiki span[style]').first()).toBeVisible()
       await page.waitForTimeout(500)
       await page.screenshot({ path: shot('overview') })
+      // The light theme is shown once.
+      if (theme === 'light') return
 
       await page.locator('#block-plan').scrollIntoViewIfNeeded()
       await page.locator('#block-plan').screenshot({ path: shot('gantt') })
       await page.locator('#block-envs').screenshot({ path: shot('table') })
-      await page.locator('#block-deploy').scrollIntoViewIfNeeded()
-      await page.locator('.doc-blocks').screenshot({ path: shot('page-full') })
+      await page.locator('#block-values').scrollIntoViewIfNeeded()
+      await page.locator('#block-values').screenshot({ path: shot('code') })
 
       await menuItem(page, 'Process').click()
       await menuItem(page, 'Release').click()
