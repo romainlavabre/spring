@@ -1,0 +1,29 @@
+appId: com.romainlavabre.spring
+productName: Spring
+executableName: spring
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - build/icon.png
+  - package.json
+# Run by the app to install an update of its AppImage.
+extraResources:
+  - install.sh
+asarUnpack:
+  - '**/*.node'
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+  syncDesktopName: true
+  icon: build/icon.png
+  maintainer: Romain Lavabre
+  synopsis: Beautiful documentation kept in git workspaces
+deb:
+  depends:
+    - git
+    - openssh-client
+artifactName: ${name}-${version}-${arch}.${ext}
