@@ -245,8 +245,17 @@ function NodeRow({ node, depth, current }: { node: TreeNode; depth: number; curr
     }
   }
 
+  // A section of the root is a heading of the menu; deeper sections are folders.
+  const heading = node.kind === 'section' && depth === 0
+
   return (
-    <li role="treeitem" aria-label={node.title} aria-expanded={node.kind === 'section' ? open : undefined} aria-selected={active}>
+    <li
+      role="treeitem"
+      aria-label={node.title}
+      aria-expanded={node.kind === 'section' ? open : undefined}
+      aria-selected={active}
+      className={clsx(heading && 'mt-4 first:mt-1')}
+    >
       <ContextMenu.Root>
         <ContextMenu.Trigger asChild>
           <div
@@ -270,20 +279,34 @@ function NodeRow({ node, depth, current }: { node: TreeNode; depth: number; curr
             onClick={activate}
             data-path={node.path}
             className={clsx(
-              'group relative flex h-8 cursor-pointer items-center gap-2 rounded-md pr-2 text-[13px] transition',
-              active ? 'bg-accent/15 font-medium text-accent' : 'text-fg/85 hover:bg-hover hover:text-fg',
-              node.kind === 'section' && 'font-semibold text-fg',
+              'group relative flex cursor-pointer items-center gap-2 rounded-md pr-2 transition',
+              heading
+                ? 'h-8 text-[11px] font-bold uppercase tracking-[0.08em] text-fg/90 hover:bg-hover'
+                : node.kind === 'section'
+                  ? 'h-8 text-[13px] font-semibold text-fg hover:bg-hover'
+                  : active
+                    ? 'h-7.5 bg-accent/15 text-[13px] font-medium text-accent'
+                    : 'h-7.5 text-[13px] text-fg/70 hover:bg-hover hover:text-fg',
               drop === 'into' && 'ring-1 ring-accent ring-inset'
             )}
             style={{ paddingLeft: 8 + depth * 14 }}
           >
             {drop === 'before' && <span className="pointer-events-none absolute -top-px left-2 right-2 h-0.5 rounded bg-accent" />}
             {drop === 'after' && <span className="pointer-events-none absolute -bottom-px left-2 right-2 h-0.5 rounded bg-accent" />}
-            {node.kind === 'section' ? (
+            {node.kind === 'section' && !heading && (
               <ChevronRight className={clsx('size-3.5 shrink-0 text-muted transition-transform', open && 'rotate-90')} />
-            ) : null}
-            <NodeIcon node={node} />
+            )}
+            {heading ? (
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent">
+                <NamedIcon name={node.icon} fallback="folder" className="size-3.5" />
+              </span>
+            ) : (
+              <NodeIcon node={node} />
+            )}
             <span className="min-w-0 flex-1 truncate">{node.title}</span>
+            {heading && (
+              <ChevronRight className={clsx('size-3.5 shrink-0 text-muted opacity-60 transition-transform group-hover:opacity-100', open && 'rotate-90')} />
+            )}
             {node.kind === 'link' && <ExternalLink className="size-3.5 shrink-0 text-muted opacity-60 group-hover:opacity-100" />}
           </div>
         </ContextMenu.Trigger>
@@ -294,7 +317,9 @@ function NodeRow({ node, depth, current }: { node: TreeNode; depth: number; curr
         </ContextMenu.Portal>
       </ContextMenu.Root>
       {node.kind === 'section' && open && (
-        <div>
+        <div className="relative mt-px">
+          {/* A guide line ties the items to their section. */}
+          <span className="pointer-events-none absolute bottom-1 top-1 w-px bg-border" style={{ left: 17 + depth * 14 }} />
           {node.children.length > 0 ? (
             <Nodes nodes={node.children} depth={depth + 1} current={current} />
           ) : (
@@ -315,10 +340,10 @@ function childrenOf(tree: TreeNode[], parent: string): TreeNode[] {
 }
 
 function NodeIcon({ node }: { node: TreeNode }): ReactNode {
-  if (node.icon) return <NamedIcon name={node.icon} fallback={node.kind === 'link' ? 'link' : 'file-text'} className="size-4 shrink-0 opacity-80" />
+  if (node.icon) return <NamedIcon name={node.icon} fallback={node.kind === 'link' ? 'link' : 'file-text'} className="size-3.5 shrink-0 opacity-75" />
   if (node.kind === 'section') return null
-  if (node.kind === 'link') return <Link2 className="size-4 shrink-0 opacity-70" />
-  return <FileText className="size-4 shrink-0 opacity-70" />
+  if (node.kind === 'link') return <Link2 className="size-3.5 shrink-0 opacity-60" />
+  return <FileText className="size-3.5 shrink-0 opacity-60" />
 }
 
 function NodeActions({ node }: { node: TreeNode }) {
