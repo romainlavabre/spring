@@ -17,7 +17,8 @@ test('creates a workspace and syncs it to a remote', async () => {
     await expect(page.getByText('No page yet')).toBeVisible()
 
     await page.getByText('Local only').first().click()
-    await page.getByRole('menuitem', { name: 'Acme' }).hover()
+    // A click opens the submenu even when the pointer lands while the menu is still animating.
+    await page.getByRole('menuitem', { name: 'Acme' }).click()
     await page.getByRole('menuitem', { name: 'Set remote' }).click()
     await page.getByRole('dialog').getByRole('textbox').fill(remote)
     await page.getByRole('button', { name: 'Save' }).click()
