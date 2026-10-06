@@ -12,6 +12,8 @@ import type { PrintJob } from '@shared/types'
 import type { AssetRoots } from './assets'
 
 const READY_TIMEOUT_MS = 60_000
+const MARGIN_INCHES = 0.55
+const PRINT_WIDTH = Math.floor((8.27 - 2 * MARGIN_INCHES) * 96)
 
 /** The pages of a page or a section path, in menu order, with the job's title. */
 export function printJobFor(store: DocStore, path: string, assetBase: string, workspaceName: string): PrintJob {
@@ -53,8 +55,11 @@ export class PdfExporter {
     this.jobs.set(token, job)
     const window = new BrowserWindow({
       show: false,
-      width: 1100,
+      // The printable width of A4 with the margins below, at 96 dpi: the page
+      // lays out as printed, so what is placed in pixels (Gantt charts) fits.
+      width: PRINT_WIDTH,
       height: 1400,
+      useContentSize: true,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         contextIsolation: true,
@@ -72,7 +77,7 @@ export class PdfExporter {
       const pdf = await window.webContents.printToPDF({
         printBackground: true,
         pageSize: 'A4',
-        margins: { top: 0.55, bottom: 0.65, left: 0.55, right: 0.55 },
+        margins: { top: MARGIN_INCHES, bottom: 0.65, left: MARGIN_INCHES, right: MARGIN_INCHES },
         displayHeaderFooter: true,
         headerTemplate: '<span></span>',
         footerTemplate: `<div style="width:100%;font-size:8px;color:#8b93a4;padding:0 36px;display:flex;justify-content:space-between;font-family:sans-serif"><span>${escapeHtml(job.title)}</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`

@@ -3,7 +3,7 @@
 // Files are written in the workspace like the app does; the app shows them
 // live and commits them at the next sync.
 import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { addBlock, allBlocks, childHolders, deleteBlock, findBlock, moveBlock, newBlockId, updateBlock, type Position } from '../core/blocks/ops'
@@ -11,6 +11,7 @@ import type { Block, Link, Page, Section } from '../core/blocks/schema'
 import { formatIssues } from '../core/blocks/validate'
 import { stableJson } from '../core/layout/json'
 import { DocStore } from '../core/layout/store'
+import { WORKSPACE_FILE } from '../core/layout/workspace'
 import { searchPages } from '../core/search'
 import type { TreeNode } from '../core/tree'
 import { reference, REFERENCE_TOPICS, type ReferenceTopic } from './reference'
@@ -105,6 +106,7 @@ export function createMcpServer(options: McpOptions): McpServer {
       : (workspaces.find((w) => w.active) ?? workspaces[0])
     if (!target) throw new Error(`No workspace "${name}". Known: ${workspaces.map((w) => w.name).join(', ')}`)
     if (!existsSync(target.path)) throw new Error(`The folder of workspace "${target.name}" is missing: ${target.path}`)
+    if (!existsSync(join(target.path, WORKSPACE_FILE))) throw new Error(`${target.path} is not a Spring workspace (no ${WORKSPACE_FILE})`)
     return new DocStore(target.path)
   }
 

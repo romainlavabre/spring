@@ -58,7 +58,11 @@ function readAsBase64(file: File): Promise<string> {
 export function PageEditor({ path, saved, onSaved }: { path: string; saved: Page; onSaved: () => Promise<void> }) {
   const entry = useDraft(path)
   const draft = (entry?.value as Page | undefined) ?? saved
-  const [selected, setSelected] = useState<string | null>(null)
+  // A new page starts with an empty text block: ready to type.
+  const [selected, setSelected] = useState<string | null>(() => {
+    const [first] = saved.blocks
+    return saved.blocks.length === 1 && first.type === 'text' && !first.md ? first.id : null
+  })
   const [source, setSource] = useState(false)
   const [serverIssues, setServerIssues] = useState<PageIssue[]>([])
   const [saving, setSaving] = useState(false)

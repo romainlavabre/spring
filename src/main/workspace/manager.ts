@@ -25,6 +25,8 @@ export interface Change<T> {
 
 /** Delay before pushing after a change, so quick successive saves make one push. */
 const PUSH_DELAY_MS = 1500
+/** Delay before committing files changed outside the app, so a burst of writes makes one commit. */
+const EXTERNAL_CHANGE_DELAY_MS = 4000
 
 export class WorkspaceManager {
   private readonly registry: JsonStore<WorkspaceState>
@@ -232,6 +234,14 @@ export class WorkspaceManager {
     } catch (error) {
       return this.publish(repoId, { syncing: false, error: gitErrorMessage(error) })
     }
+  }
+
+  /**
+   * Files changed outside the app (an assistant through MCP, an editor): they
+   * are committed, and pushed, a moment after the last change.
+   */
+  scheduleSync(repoId: string, delay = EXTERNAL_CHANGE_DELAY_MS): void {
+    if (this.state().repos.some((r) => r.id === repoId)) this.schedulePush(repoId, delay)
   }
 
   private schedulePush(repoId: string, delay = this.pushDelayMs): void {

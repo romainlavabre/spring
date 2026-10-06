@@ -150,12 +150,16 @@ function startCli(args: string[]): void {
 function ready(): void {
   Menu.setApplicationMenu(null)
   const dataDir = app.getPath('userData')
-  const watcher = new WorkspaceWatcher((repoId) => send('workspace:files', { repoId }))
+  const watcher = new WorkspaceWatcher((repoId) => {
+    send('workspace:files', { repoId })
+    // What an assistant wrote through MCP is committed without waiting for a click on Sync.
+    workspace.scheduleSync(repoId)
+  })
   const watchActive = (state: WorkspaceState): void => {
     const active = state.repos.find((r) => r.id === state.activeRepoId)
     watcher.watch(active?.id ?? null, active?.path ?? null)
   }
-  const workspace = new WorkspaceManager(join(dataDir, 'workspaces.json'), join(dataDir, 'workspaces'), {
+  const workspace: WorkspaceManager = new WorkspaceManager(join(dataDir, 'workspaces.json'), join(dataDir, 'workspaces'), {
     status: (status) => send('workspace:status', status),
     changed: (state) => {
       watchActive(state)

@@ -26,6 +26,11 @@ export function MainArea() {
   const { data: css } = useTheme()
   const path = chosen && tree && pagesInOrder(tree).some((p) => p.path === chosen) ? chosen : homePage(tree)
 
+  // The home page shown by default becomes the current one: links from it can come back to it.
+  useEffect(() => {
+    if (path && path !== chosen) useApp.setState({ page: path })
+  }, [path, chosen])
+
   const environment = useMemo<DocEnvironment>(
     () => ({
       assetBase: repo ? `spring-asset://${repo.id}` : '',

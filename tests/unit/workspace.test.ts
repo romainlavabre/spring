@@ -95,6 +95,17 @@ describe('WorkspaceManager', () => {
     expect(git(remote, 'log', '--format=%s', 'master')).toContain('Update workspace')
   })
 
+  it('commits and pushes the files an assistant wrote, a moment after the last change', async () => {
+    const { ws } = user(root, 'alice')
+    const repo = await ws.clone('Shared', remote)
+    await ws.flush()
+    writeFileSync(join(repo.path, 'sections', 'from-mcp.page.json'), '{"title": "From MCP", "blocks": []}\n')
+    ws.scheduleSync(repo.id, 10)
+    ws.scheduleSync('unknown-workspace', 10)
+    await expect.poll(() => git(remote, 'log', '-1', '--format=%s', 'master').trim(), { timeout: 5000 }).toBe('Update workspace')
+    expect(git(repo.path, 'status', '--porcelain')).toBe('')
+  })
+
   it('always works on master, even when the remote default branch is main', async () => {
     const mainRemote = bareRemote(root, 'main-remote.git', 'main')
     const seed = join(root, 'seed')
