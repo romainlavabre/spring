@@ -17,6 +17,26 @@ date, the items keep the order they are written in: a procedure, or a plan whose
 
 ![Vertical timeline](images/vertical-timeline.png)
 
+### Procedures
+
+A procedure says who does what, in which order. Give each step an actor, and leave out the dates and the status: the
+steps keep their order, and each shows its actor on the right instead of a status pill.
+
+```json
+{
+  "id": "access",
+  "type": "timeline",
+  "view": "vertical",
+  "items": [
+    { "id": "request", "title": "Request the access", "actor": "Developer", "description": "Open a ticket with the project and the role." },
+    { "id": "approve", "title": "Approve the request", "actor": "Lead dev" },
+    { "id": "grant", "title": "Grant the access", "actor": "CTO", "kind": "milestone" }
+  ]
+}
+```
+
+![A procedure](images/procedure.png)
+
 ## Items
 
 | Field | |
@@ -25,7 +45,8 @@ date, the items keep the order they are written in: a procedure, or a plan whose
 | Kind | **phase** (from a start to an end), **milestone** or **event** (a point in time) |
 | Start, end | Optional. `YYYY`, `YYYY-MM` or `YYYY-MM-DD`; a month runs to its last day. Only phases have an end, after a start. |
 | Lane | Optional: the row of the Gantt view, a colored tag in the vertical view |
-| Status | **done**, **current** (in progress), **planned** or **blocked** |
+| Actor | Optional: who does it (`CTO`, `Lead dev`…), shown on the item and on hover in the Gantt view |
+| Status | Optional: **done**, **current** (in progress), **planned** or **blocked**. Without status, no pill. |
 | Description | Markdown, shown under the item, or on hover in the Gantt view (and under the chart in PDFs) |
 | Link | A page (`page:section/page`) or a website |
 | Depends on | Items that must finish first: arrows in the Gantt view |

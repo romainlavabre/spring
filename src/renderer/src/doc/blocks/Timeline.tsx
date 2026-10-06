@@ -1,7 +1,7 @@
 // Timelines: a vertical story (newest last, grouped by year), or a Gantt chart
 // with lanes, phases, milestones, dependencies and today's line.
 import clsx from 'clsx'
-import { ArrowUpRight, Check, Diamond, OctagonAlert } from 'lucide-react'
+import { ArrowUpRight, Check, Diamond, OctagonAlert, User } from 'lucide-react'
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { dayToDate, endDay, formatRange, MONTHS, startDay, today } from '@core/blocks/dates'
 import { DATE_PATTERN, type Color, type TimelineBlock } from '@core/blocks/schema'
@@ -14,7 +14,9 @@ type Dated = Item & { start: string }
 
 const isDated = (item: Item): item is Dated => !!item.start
 
-const STATUS_LABELS: Record<Item['status'], string> = { done: 'Done', current: 'In progress', planned: 'Planned', blocked: 'Blocked' }
+type Status = NonNullable<Item['status']>
+
+const STATUS_LABELS: Record<Status, string> = { done: 'Done', current: 'In progress', planned: 'Planned', blocked: 'Blocked' }
 const LANE_COLORS: Color[] = ['blue', 'violet', 'teal', 'amber', 'pink', 'green', 'orange']
 
 function laneColors(block: TimelineBlock): Map<string, Color> {
@@ -25,7 +27,17 @@ function itemEnd(item: Dated): number {
   return item.kind === 'phase' && item.end ? endDay(item.end) : item.kind === 'phase' ? endDay(item.start) : startDay(item.start)
 }
 
-function StatusPill({ status }: { status: Item['status'] }) {
+/** Who does the item, in a procedure. */
+function Actor({ actor }: { actor: string }) {
+  return (
+    <span className="doc-tl-actor">
+      <User className="size-3" />
+      {actor}
+    </span>
+  )
+}
+
+function StatusPill({ status }: { status: Status }) {
   return (
     <span className="doc-tl-status" data-status={status}>
       {status === 'done' && <Check className="size-3" />}
@@ -68,9 +80,9 @@ function Undated({ block, items }: { block: TimelineBlock; items: Item[] }) {
       {items.map((item) => (
         <span
           key={item.id}
-          className={clsx('doc-gantt-undated-item', `is-${item.status}`, item.link && 'is-link')}
+          className={clsx('doc-gantt-undated-item', item.status && `is-${item.status}`, item.link && 'is-link')}
           data-color={item.lane ? (colors.get(item.lane) ?? 'gray') : 'red'}
-          title={STATUS_LABELS[item.status]}
+          title={[item.actor, item.status && STATUS_LABELS[item.status]].filter(Boolean).join(' · ') || undefined}
           onClick={() => item.link && follow(item.link)}
         >
           {item.kind === 'milestone' ? <Diamond className="size-3" /> : <span className="doc-gantt-undated-dot" />}
@@ -107,7 +119,7 @@ function VerticalTimeline({ block, items: all }: { block: TimelineBlock; items: 
         }
         const color = item.lane ? colors.get(item.lane) : undefined
         nodes.push(
-          <li key={item.id} className={clsx('doc-tl-entry', `is-${item.status}`, `kind-${item.kind}`)} data-color={color ?? 'red'}>
+          <li key={item.id} className={clsx('doc-tl-entry', item.status && `is-${item.status}`, `kind-${item.kind}`)} data-color={color ?? 'red'}>
             <div className="doc-tl-marker">{item.kind === 'milestone' ? <Diamond className="size-3" /> : item.status === 'done' ? <Check className="size-3" /> : null}</div>
             <div className="doc-tl-card">
               <div className="doc-tl-meta">
@@ -117,7 +129,12 @@ function VerticalTimeline({ block, items: all }: { block: TimelineBlock; items: 
                     {lanes.get(item.lane)}
                   </span>
                 )}
-                <StatusPill status={item.status} />
+                {(item.actor || item.status) && (
+                  <span className="doc-tl-meta-end">
+                    {item.actor && <Actor actor={item.actor} />}
+                    {item.status && <StatusPill status={item.status} />}
+                  </span>
+                )}
               </div>
               <div className="doc-tl-heading">
                 {item.link ? (
@@ -352,7 +369,7 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
                 return (
                   <div
                     key={p.item.id}
-                    className={clsx('doc-gantt-point', `kind-${p.item.kind}`, `is-${p.item.status}`, p.item.link && 'is-link')}
+                    className={clsx('doc-gantt-point', `kind-${p.item.kind}`, p.item.status && `is-${p.item.status}`, p.item.link && 'is-link')}
                     style={{ left, top: y }}
                     {...common}
                   >
@@ -368,7 +385,7 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
               return (
                 <div
                   key={p.item.id}
-                  className={clsx('doc-gantt-bar', `is-${p.item.status}`, p.item.link && 'is-link')}
+                  className={clsx('doc-gantt-bar', p.item.status && `is-${p.item.status}`, p.item.link && 'is-link')}
                   style={{ left, width: barWidth, top: y - 13 }}
                   {...common}
                 >
@@ -384,8 +401,9 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
               >
                 <div className="doc-gantt-card-title">{hoveredItem.item.title}</div>
                 <div className="doc-gantt-card-meta">
-                  {formatRange(hoveredItem.item.start, hoveredItem.item.kind === 'phase' ? hoveredItem.item.end : undefined)}
-                  <StatusPill status={hoveredItem.item.status} />
+                  <span>{formatRange(hoveredItem.item.start, hoveredItem.item.kind === 'phase' ? hoveredItem.item.end : undefined)}</span>
+                  {hoveredItem.item.actor && <Actor actor={hoveredItem.item.actor} />}
+                  {hoveredItem.item.status && <StatusPill status={hoveredItem.item.status} />}
                 </div>
                 {hoveredItem.item.description && (
                   <div className="doc-gantt-card-text">
@@ -404,7 +422,7 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
 }
 
 function GanttLegend({ items, showToday }: { items: Item[]; showToday: boolean }) {
-  const statuses = (Object.keys(STATUS_LABELS) as Item['status'][]).filter((status) => items.some((i) => i.status === status))
+  const statuses = (Object.keys(STATUS_LABELS) as Status[]).filter((status) => items.some((i) => i.status === status))
   return (
     <div className="doc-gantt-legend">
       {statuses.map((status) => (
@@ -439,6 +457,7 @@ function GanttNotes({ items }: { items: Dated[] }) {
         <div key={item.id}>
           <dt>
             {item.title} <span>{formatRange(item.start, item.kind === 'phase' ? item.end : undefined)}</span>
+            {item.actor && <span>· {item.actor}</span>}
           </dt>
           <dd>
             <Markdown>{item.description!}</Markdown>

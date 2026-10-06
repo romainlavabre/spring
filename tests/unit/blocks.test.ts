@@ -97,7 +97,13 @@ describe('block schemas', () => {
   it('accepts timeline items without a date', () => {
     const result = validatePage(page([timeline({ view: 'vertical', items: [{ id: 'a', title: 'Ask for access' }, { id: 'b', title: 'Install', kind: 'phase' }] as never })]))
     expect(result.ok).toBe(true)
-    expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Ask for access', kind: 'event', status: 'planned' })
+    expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Ask for access', kind: 'event' })
+  })
+
+  it('takes an actor on timeline items, and no status by default', () => {
+    const result = validatePage(page([timeline({ view: 'vertical', items: [{ id: 'a', title: 'Approve', actor: 'Lead dev' }] as never })]))
+    expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Approve', kind: 'event', actor: 'Lead dev' })
+    expect(validatePage(page([timeline({ items: [{ id: 'a', title: 'A', status: 'later' }] as never })])).issues[0].path).toBe('blocks[0].items[0].status')
   })
 
   it('checks the columns of tables', () => {

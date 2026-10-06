@@ -137,8 +137,26 @@ export function seedDemo(dir: string, name = 'Acme docs'): void {
         items: [
           { id: 'a', title: 'Manual releases', kind: 'event', start: '2024-03', status: 'done', description: 'Every Thursday, by hand.' },
           { id: 'b', title: 'CI pipelines', kind: 'phase', start: '2025-01', end: '2025-04', status: 'done', lane: 'team' },
-          { id: 'c', title: 'Continuous delivery', kind: 'milestone', start: '2026-02-15', status: 'current', link: 'page:infra/kubernetes' },
+          { id: 'c', title: 'Continuous delivery', kind: 'milestone', start: '2026-02-15', status: 'current', actor: 'Lead dev', link: 'page:infra/kubernetes' },
           { id: 'd', title: 'Canary releases', kind: 'event', start: '2026-09', status: 'planned' }
+        ]
+      }
+    ]
+  })
+
+  store.createPage('process', {
+    title: 'Production access',
+    icon: 'key-round',
+    description: 'Who grants what, in which order',
+    blocks: [
+      {
+        id: 'access',
+        type: 'timeline',
+        view: 'vertical',
+        items: [
+          { id: 'request', title: 'Request the access', kind: 'event', actor: 'Developer', description: 'Open a ticket with the project and the role.' },
+          { id: 'approve', title: 'Approve the request', kind: 'event', actor: 'Lead dev' },
+          { id: 'grant', title: 'Grant the access', kind: 'milestone', actor: 'CTO', description: 'Valid for 90 days.' }
         ]
       }
     ]

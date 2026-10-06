@@ -966,7 +966,24 @@ th[style*='center'] .doc-th-button { justify-content: center; }
   color: var(--tone-fg);
   font-variant-numeric: tabular-nums;
 }
-.doc-tl-meta .doc-tl-status { margin-left: auto; }
+/* The actor and the status, on the right of the meta line. */
+.doc-tl-meta-end {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.doc-tl-actor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--doc-fg-soft);
+  white-space: nowrap;
+}
+.doc-tl-actor svg { color: var(--doc-muted); }
 .doc-tl-heading {
   margin-top: 3px;
   font-size: 16px;
@@ -1195,12 +1212,13 @@ th[style*='center'] .doc-th-button { justify-content: center; }
 .doc-gantt-card-title { font-weight: 650; font-size: 13.5px; }
 .doc-gantt-card-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 4px 10px;
   margin-top: 2px;
   color: var(--doc-muted);
 }
+.doc-gantt-card-meta .doc-tl-status { margin-left: auto; }
 .doc-gantt-card-text { margin-top: 6px; color: var(--doc-fg-soft); }
 .doc-gantt-card-text p { margin: 0; }
 

@@ -1,5 +1,5 @@
 // Edits a timeline: its view, its lanes, and its items as a grid (title,
-// kind, dates, lane, status), with description, link and dependencies
+// kind, dates, actor, lane, status), with description, link and dependencies
 // under each item.
 import clsx from 'clsx'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
@@ -67,7 +67,8 @@ export function TimelineEditor({ block, onChange }: { block: TimelineBlock; onCh
       kind: block.view === 'gantt' ? 'phase' : 'event',
       // After an undated item, the new one is undated too.
       start: last ? (last.end ?? last.start) : new Date().toISOString().slice(0, 7),
-      status: 'planned',
+      // Likewise after an item without status, as in a procedure.
+      status: last && !last.status ? undefined : 'planned',
       lane: last?.lane
     }
     if (item.kind === 'phase' && item.start) item.end = item.start
@@ -123,6 +124,7 @@ export function TimelineEditor({ block, onChange }: { block: TimelineBlock; onCh
                 <th className="p-2 font-medium">Kind</th>
                 <th className="p-2 font-medium">Start</th>
                 <th className="p-2 font-medium">End</th>
+                <th className="p-2 font-medium">Actor</th>
                 <th className="p-2 font-medium">Lane</th>
                 <th className="p-2 font-medium">Status</th>
                 <th className="w-8 p-2" />
@@ -221,6 +223,15 @@ function ItemRows({
           />
         </td>
         <td className="p-1">
+          <input
+            className={cn(fieldClass, 'h-7 w-28 text-xs')}
+            value={item.actor ?? ''}
+            placeholder="Who"
+            aria-label={`Actor of item ${index + 1}`}
+            onChange={(e) => onChange({ ...item, actor: e.target.value || undefined })}
+          />
+        </td>
+        <td className="p-1">
           <select className={select} value={item.lane ?? ''} aria-label={`Lane of item ${index + 1}`} onChange={(e) => onChange({ ...item, lane: e.target.value || undefined })}>
             <option value="">—</option>
             {block.lanes.map((lane) => (
@@ -231,7 +242,13 @@ function ItemRows({
           </select>
         </td>
         <td className="p-1">
-          <select className={select} value={item.status} aria-label={`Status of item ${index + 1}`} onChange={(e) => onChange({ ...item, status: e.target.value as Item['status'] })}>
+          <select
+            className={select}
+            value={item.status ?? ''}
+            aria-label={`Status of item ${index + 1}`}
+            onChange={(e) => onChange({ ...item, status: (e.target.value || undefined) as Item['status'] })}
+          >
+            <option value="">No status</option>
             {TIMELINE_STATUSES.map((status) => (
               <option key={status}>{status}</option>
             ))}
@@ -246,7 +263,7 @@ function ItemRows({
       {open && (
         <tr>
           <td />
-          <td colSpan={7} className="p-2 pt-0">
+          <td colSpan={8} className="p-2 pt-0">
             <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-bg/40 p-2.5">
               <MarkdownField label="Description" value={item.description ?? ''} onChange={(description) => onChange({ ...item, description: description || undefined })} minHeight={50} />
               <TextField label="Link" value={item.link ?? ''} onChange={(link) => onChange({ ...item, link: link || undefined })} placeholder="page:section/page or https://…" mono />

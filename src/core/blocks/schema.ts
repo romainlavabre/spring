@@ -116,7 +116,11 @@ export const timelineBlockSchema = z
             .describe('Optional. Undated items keep their place in a vertical timeline; a Gantt chart lists them under the chart'),
           end: date.optional().describe('Phases only, with a start; inclusive'),
           lane: z.string().optional(),
-          status: z.enum(TIMELINE_STATUSES).default('planned'),
+          actor: z.string().optional().describe('Optional: who does it, e.g. "CTO" or "Lead dev"; for the steps of a procedure'),
+          status: z
+            .enum(TIMELINE_STATUSES)
+            .optional()
+            .describe('Optional: progress of the item; leave it out where progress means nothing, as in a procedure'),
           description: markdown.optional(),
           link: z.string().optional().describe('https://… or page:section/page'),
           dependsOn: z.array(z.string()).optional().describe('Ids of items that must finish first: drawn as arrows in Gantt')

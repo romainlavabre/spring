@@ -101,7 +101,7 @@ describe('MCP server', () => {
           lanes: [{ id: 'infra', title: 'Infra', color: 'blue' }],
           items: [
             { id: 'a', title: 'Cluster', kind: 'phase', start: '2026-01', end: '2026-02', lane: 'infra', status: 'done' },
-            { id: 'b', title: 'Go live', kind: 'milestone', start: '2026-03-01', lane: 'infra', dependsOn: ['a'] }
+            { id: 'b', title: 'Go live', start: '2026-03-01', lane: 'infra', dependsOn: ['a'] }
           ]
         },
         { type: 'tabs', tabs: [{ label: 'Prod', blocks: [{ type: 'code', lang: 'bash', code: 'kubectl get pods -n prod' }] }] }
@@ -120,9 +120,10 @@ describe('MCP server', () => {
         '  ↗ Grafana  (link: liens-externes/grafana → https://grafana.example.com)'
       ].join('\n')
     )
-    const page = JSON.parse((await call('get_page', { path: 'infra/kubernetes' })).text) as { blocks: { items?: { status: string }[] }[] }
-    // Defaults are filled in.
-    expect(page.blocks[1].items?.[1].status).toBe('planned')
+    const page = JSON.parse((await call('get_page', { path: 'infra/kubernetes' })).text) as { blocks: { items?: { kind: string; status?: string }[] }[] }
+    // Defaults are filled in; the status has none.
+    expect(page.blocks[1].items?.[1]).toMatchObject({ kind: 'event' })
+    expect(page.blocks[1].items?.[1].status).toBeUndefined()
   })
 
   it('edits a page block by block', async () => {

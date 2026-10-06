@@ -187,6 +187,43 @@ describe('timelines', () => {
     expect([...container.querySelectorAll('.doc-tl-year')].map((e) => e.textContent)).toEqual(['2027', '2026'])
   })
 
+  it('shows the actor of the steps of a procedure, without status', () => {
+    const { container } = show({
+      ...plan,
+      view: 'vertical',
+      items: [
+        { id: 'r', title: 'Request the access', kind: 'event', actor: 'Developer' },
+        { id: 'g', title: 'Grant the access', kind: 'event', actor: 'CTO', status: 'done' }
+      ]
+    })
+    const [first, second] = [...container.querySelectorAll('.doc-tl-entry')]
+    expect(first.querySelector('.doc-tl-meta-end .doc-tl-actor')?.textContent).toBe('Developer')
+    expect(first.querySelector('.doc-tl-actor .lucide-user')).not.toBeNull()
+    expect(first.querySelector('.doc-tl-status')).toBeNull()
+    expect(first.querySelector('.doc-tl-marker svg')).toBeNull()
+    expect(first.className).not.toMatch(/is-/)
+    // With an actor and a status, both show: the actor first.
+    expect([...second.querySelectorAll('.doc-tl-meta-end > *')].map((e) => e.textContent)).toEqual(['CTO', 'Done'])
+    expect(second.querySelector('.doc-tl-marker .lucide-check')).not.toBeNull()
+  })
+
+  it('shows the actor in the Gantt card and the printed notes, and leaves items without status out of the legend', () => {
+    const items: TimelineBlock['items'] = [
+      { id: 'a', title: 'Cluster', kind: 'phase', start: '2026-01', end: '2026-02', actor: 'Ops team', description: 'Six weeks' },
+      { id: 'b', title: 'Go live', kind: 'milestone', start: '2026-03', status: 'planned' },
+      { id: 'c', title: 'Retro', kind: 'event', actor: 'Lead dev', status: 'blocked' }
+    ]
+    const { container } = show({ ...plan, items })
+    fireEvent.mouseEnter(container.querySelector('.doc-gantt-bar')!)
+    expect(container.querySelector('.doc-gantt-card-meta .doc-tl-actor')?.textContent).toBe('Ops team')
+    expect(container.querySelector('.doc-gantt-card-meta .doc-tl-status')).toBeNull()
+    expect([...container.querySelectorAll('.doc-gantt-legend-item')].map((e) => e.textContent)).toEqual(['Planned', 'Milestone'])
+    expect(container.querySelector('.doc-gantt-undated-item')?.getAttribute('title')).toBe('Lead dev · Blocked')
+
+    const { container: printed } = show({ ...plan, items }, { printing: true })
+    expect(printed.querySelector('.doc-gantt-notes dt')?.textContent).toContain('Ops team')
+  })
+
   it('lists the undated items of a Gantt chart under it', () => {
     const { container, environment } = show({
       ...plan,
