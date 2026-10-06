@@ -175,7 +175,7 @@ export class DocStore {
     try {
       raw = JSON.parse(source)
     } catch (error) {
-      throw new Error(`Page "${path}" is not valid JSON: ${(error as Error).message}`)
+      throw new Error(`Page "${path}" is not valid JSON: ${(error as Error).message}`, { cause: error })
     }
     const result = validatePage(raw)
     if (!result.ok) throw new Error(`Page "${path}" is invalid:\n${formatIssues(result.issues)}`)

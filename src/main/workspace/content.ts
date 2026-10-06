@@ -50,7 +50,7 @@ export class ContentService {
     try {
       raw = JSON.parse(source)
     } catch (error) {
-      throw new Error(`Invalid JSON: ${(error as Error).message}`)
+      throw new Error(`Invalid JSON: ${(error as Error).message}`, { cause: error })
     }
     return this.savePage(path, raw as Page)
   }

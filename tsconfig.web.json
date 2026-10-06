@@ -26,6 +26,8 @@
     "src/core/blocks/**/*",
     "src/core/tree.ts",
     "src/core/slug.ts",
+    "src/core/layout/json.ts",
+    "src/core/search.ts",
     "src/preload/*.d.ts",
     "tests/unit/**/*.tsx"
   ]
