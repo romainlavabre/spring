@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Block, TableBlock, TimelineBlock } from '@core/blocks/schema'
 import { BlockView } from '@/doc/BlockView'
 import { DocProvider, type DocEnvironment } from '@/doc/context'
 import { parseDelimited, tableFromRows } from '@/features/editor/TableEditor'
+import { TimelineEditor } from '@/features/editor/TimelineEditor'
+
+// The editors import the bridge to the main process, which jsdom has not.
+vi.mock('@/lib/bridge', () => ({ api: {}, onEvent: () => () => undefined, errorMessage: String }))
 
 beforeAll(() => {
   // jsdom lacks these browser APIs.
@@ -222,6 +227,99 @@ describe('timelines', () => {
 
     const { container: printed } = show({ ...plan, items }, { printing: true })
     expect(printed.querySelector('.doc-gantt-notes dt')?.textContent).toContain('Ops team')
+  })
+
+  it('shows a declared actor as a badge of its color, and any other actor as written', () => {
+    const { container } = show({
+      ...plan,
+      view: 'vertical',
+      actors: [
+        { id: 'cto', title: 'CTO', color: 'red' },
+        { id: 'lead', title: 'Lead dev' }
+      ],
+      items: [
+        { id: 'r', title: 'Request', kind: 'event', actor: 'Ops team' },
+        { id: 'a', title: 'Approve', kind: 'event', actor: 'lead' },
+        { id: 'g', title: 'Grant', kind: 'event', actor: 'cto', status: 'done' }
+      ]
+    })
+    const [free, palette, colored] = [...container.querySelectorAll('.doc-tl-meta-end')]
+    expect(free.querySelector('.doc-tl-actor')?.textContent).toBe('Ops team')
+    expect(free.querySelector('.doc-badge')).toBeNull()
+    // Without a color, the second actor takes the second color of the palette, like lanes.
+    expect(palette.querySelector('.doc-badge')?.textContent).toBe('Lead dev')
+    expect(palette.querySelector('.doc-badge')?.getAttribute('data-color')).toBe('violet')
+    expect(palette.querySelector('.doc-tl-actor, .lucide-user')).toBeNull()
+    expect([...colored.children].map((e) => [e.className, e.textContent])).toEqual([
+      ['doc-badge', 'CTO'],
+      ['doc-tl-status', 'Done']
+    ])
+    expect(colored.querySelector('.doc-badge')?.getAttribute('data-color')).toBe('red')
+  })
+
+  it('shows declared actors as badges in the Gantt card, the undated chips and the printed notes', () => {
+    const block: TimelineBlock = {
+      ...plan,
+      actors: [{ id: 'ops', title: 'Ops team', color: 'teal' }],
+      items: [
+        { id: 'a', title: 'Cluster', kind: 'phase', start: '2026-01', end: '2026-02', actor: 'ops', description: 'Six weeks' },
+        { id: 'b', title: 'Retro', kind: 'event', actor: 'ops', status: 'planned' },
+        { id: 'c', title: 'Party', kind: 'event', actor: 'Everyone' }
+      ]
+    }
+    const { container } = show(block)
+    fireEvent.mouseEnter(container.querySelector('.doc-gantt-bar')!)
+    expect(container.querySelector('.doc-gantt-card-meta .doc-badge')?.getAttribute('data-color')).toBe('teal')
+    const [retro, party] = [...container.querySelectorAll('.doc-gantt-undated-item')]
+    expect(retro.querySelector('.doc-badge')?.textContent).toBe('Ops team')
+    expect(retro.getAttribute('title')).toBe('Ops team · Planned')
+    expect(party.querySelector('.doc-badge')).toBeNull()
+    expect(party.getAttribute('title')).toBe('Everyone')
+
+    const { container: printed } = show(block, { printing: true })
+    expect(printed.querySelector('.doc-gantt-notes dt .doc-badge')?.textContent).toBe('Ops team')
+  })
+
+  it('edits the actor of an item: one of the actors of the block, or free text', () => {
+    let current: TimelineBlock = {
+      ...plan,
+      view: 'vertical',
+      lanes: [],
+      actors: [
+        { id: 'cto', title: 'CTO', color: 'red' },
+        { id: 'lead', title: 'Lead dev' }
+      ],
+      items: [
+        { id: 'a', title: 'Approve', kind: 'event' },
+        { id: 'b', title: 'Deploy', kind: 'event', actor: 'Ops team' }
+      ]
+    }
+    function Harness() {
+      const [block, setBlock] = useState(current)
+      current = block
+      return <TimelineEditor block={block} onChange={setBlock} />
+    }
+    render(<Harness />)
+    // An actor of the block, by its id.
+    fireEvent.change(screen.getByLabelText('Actor of item 1'), { target: { value: 'cto' } })
+    expect(current.items[0].actor).toBe('cto')
+    // Free text starts from the title of the actor it replaces.
+    fireEvent.change(screen.getByLabelText('Actor of item 1'), { target: { value: '\u0000free-text' } })
+    expect(current.items[0].actor).toBe('CTO')
+    fireEvent.change(screen.getByLabelText('Actor of item 1 (free text)'), { target: { value: '' } })
+    expect(current.items[0].actor).toBeUndefined()
+    expect(screen.getByLabelText('Actor of item 1 (free text)')).toBeTruthy()
+    // An actor that is not declared shows as free text.
+    expect((screen.getByLabelText('Actor of item 2 (free text)') as HTMLInputElement).value).toBe('Ops team')
+
+    fireEvent.change(screen.getByLabelText('Actor of item 1'), { target: { value: 'lead' } })
+    // Removing an actor keeps its title on its items, as free text.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[1])
+    expect(current.actors).toEqual([{ id: 'cto', title: 'CTO', color: 'red' }])
+    expect(current.items[0].actor).toBe('Lead dev')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[0])
+    expect(current.actors).toBeUndefined()
+    expect(screen.getByLabelText('Actor of item 1')).toBeInstanceOf(HTMLInputElement)
   })
 
   it('lists the undated items of a Gantt chart under it', () => {

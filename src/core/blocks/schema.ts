@@ -105,6 +105,10 @@ export const timelineBlockSchema = z
       .array(z.object({ id: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/), title: z.string(), color: color.optional() }))
       .default([])
       .describe('Rows of the Gantt view (teams, streams); items without lane go to a row of their own'),
+    actors: z
+      .array(z.object({ id: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/), title: z.string(), color: color.optional() }))
+      .optional()
+      .describe('Optional: the actors of the items, each shown as a colored badge; an item names one by its id in "actor"'),
     items: z
       .array(
         z.object({
@@ -116,7 +120,10 @@ export const timelineBlockSchema = z
             .describe('Optional. Undated items keep their place in a vertical timeline; a Gantt chart lists them under the chart'),
           end: date.optional().describe('Phases only, with a start; inclusive'),
           lane: z.string().optional(),
-          actor: z.string().optional().describe('Optional: who does it, e.g. "CTO" or "Lead dev"; for the steps of a procedure'),
+          actor: z
+            .string()
+            .optional()
+            .describe('Optional: who does it, for the steps of a procedure. The id of one of "actors" (a colored badge), or free text such as "CTO"'),
           status: z
             .enum(TIMELINE_STATUSES)
             .optional()

@@ -33,13 +33,17 @@ Conventions:
 - Colors are named: ${COLORS.join(', ')}.
 - Icons are Lucide names in kebab-case: server, database, git-branch, shield-check, rocket, book-open, users, cloud…
 - Dates are YYYY, YYYY-MM or YYYY-MM-DD. Timeline phases have start and end; milestones and events only a start. The start is optional: undated items keep the order they are written in a vertical timeline (dated ones are sorted by date only when every item has a date), and a Gantt chart lists them under the chart.
-- Timeline items take an optional actor (who does it: "CTO", "Lead dev"…) and an optional status (done, current,
-  planned, blocked; no status, no pill). A procedure is a vertical timeline whose items have an actor, and neither
-  dates nor status:
-  {"type": "timeline", "view": "vertical", "items": [
-    {"id": "request", "title": "Request the access", "actor": "Developer"},
-    {"id": "approve", "title": "Approve the request", "actor": "Lead dev"},
-    {"id": "grant", "title": "Grant the access", "actor": "CTO"}]}
+- Timeline items take an optional actor (who does it) and an optional status (done, current, planned, blocked; no
+  status, no pill). Declare the actors of the block in "actors" ({id, title, color?}, like lanes): an item whose actor
+  is one of their ids shows a badge of its color. Any other actor is free text, shown as written. A procedure is a
+  vertical timeline whose items have an actor, and neither dates nor status:
+  {"type": "timeline", "view": "vertical",
+   "actors": [{"id": "dev", "title": "Developer", "color": "blue"}, {"id": "lead", "title": "Lead dev", "color": "violet"},
+              {"id": "cto", "title": "CTO", "color": "red"}],
+   "items": [
+    {"id": "request", "title": "Request the access", "actor": "dev"},
+    {"id": "approve", "title": "Approve the request", "actor": "lead"},
+    {"id": "grant", "title": "Grant the access", "actor": "cto"}]}
 - Images: add_asset copies a local image into the workspace, then an image block shows it.
 - Headings ## and ### of text blocks build the table of contents of the page: start sections of a page with them.
 

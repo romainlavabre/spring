@@ -170,7 +170,7 @@ export function pageText(page: Page): string {
         parts.push(block.caption ?? '', ...block.columns.map((c) => c.title), ...block.rows.flatMap((r) => Object.values(r)))
         break
       case 'timeline':
-        parts.push(block.title ?? '', ...block.lanes.map((l) => l.title), ...block.items.flatMap((i) => [i.title, i.actor ?? '']))
+        parts.push(block.title ?? '', ...block.lanes.map((l) => l.title), ...(block.actors ?? []).map((a) => a.title), ...block.items.flatMap((i) => [i.title, i.actor ?? '']))
         break
       case 'steps':
         parts.push(...block.steps.map((s) => s.title))

@@ -47,6 +47,61 @@ function DateInput({
   )
 }
 
+const FREE_TEXT = '\u0000free-text'
+
+/** The actor of an item: one of the actors of the block, or free text. */
+function ActorInput({
+  value,
+  actors,
+  label,
+  onChange
+}: {
+  value: string | undefined
+  actors: NonNullable<TimelineBlock['actors']>
+  label: string
+  onChange: (actor: string | undefined) => void
+}) {
+  const declared = actors.find((actor) => actor.id === value)
+  // Free text stays open while it is emptied to be retyped.
+  const [chosenFree, setChosenFree] = useState(!!value && !declared)
+  const text = (
+    <input
+      className={cn(fieldClass, 'h-7 w-28 text-xs')}
+      value={value ?? ''}
+      placeholder="Who"
+      aria-label={actors.length ? `${label} (free text)` : label}
+      onChange={(e) => onChange(e.target.value || undefined)}
+    />
+  )
+  if (actors.length === 0) return text
+  const free = !declared && (chosenFree || !!value)
+  return (
+    <div className="flex gap-1">
+      <select
+        className={cn(fieldClass, 'h-7 text-xs')}
+        value={free ? FREE_TEXT : (value ?? '')}
+        aria-label={label}
+        onChange={(e) => {
+          const next = e.target.value
+          setChosenFree(next === FREE_TEXT)
+          // Free text starts from the title of the actor it replaces.
+          if (next === FREE_TEXT) onChange(declared?.title || undefined)
+          else onChange(next || undefined)
+        }}
+      >
+        <option value="">—</option>
+        {actors.map((actor) => (
+          <option key={actor.id} value={actor.id}>
+            {actor.title}
+          </option>
+        ))}
+        <option value={FREE_TEXT}>Free text…</option>
+      </select>
+      {free && text}
+    </div>
+  )
+}
+
 export function TimelineEditor({ block, onChange }: { block: TimelineBlock; onChange: (block: TimelineBlock) => void }) {
   const [open, setOpen] = useState<number | null>(null)
   const setItem = (index: number, item: Item): void => onChange({ ...block, items: block.items.map((it, i) => (i === index ? item : it)) })
@@ -108,6 +163,34 @@ export function TimelineEditor({ block, onChange }: { block: TimelineBlock; onCh
             <Row>
               <TextField label="Lane" value={lane.title} onChange={(title) => update({ ...lane, title })} width={200} />
               <ColorField value={lane.color} onChange={(color) => update({ ...lane, color })} />
+            </Row>
+          )}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label>Actors (colored badges; an item may also name its actor in free text)</Label>
+        <ListEditor<NonNullable<TimelineBlock['actors']>[number]>
+          items={block.actors ?? []}
+          addLabel="Add an actor"
+          onChange={(list) => {
+            // The items of a removed actor keep its title, as free text.
+            const kept = new Set(list.map((a) => a.id))
+            const removed = new Map((block.actors ?? []).filter((a) => !kept.has(a.id)).map((a) => [a.id, a.title]))
+            onChange({
+              ...block,
+              actors: list.length ? list : undefined,
+              items: block.items.map((item) => (item.actor && removed.has(item.actor) ? { ...item, actor: removed.get(item.actor) || undefined } : item))
+            })
+          }}
+          create={() => {
+            const actors = block.actors ?? []
+            return { id: uniqueId(`actor-${actors.length + 1}`, actors.map((a) => a.id)), title: `Actor ${actors.length + 1}` }
+          }}
+          render={(actor, update) => (
+            <Row>
+              <TextField label="Actor" value={actor.title} onChange={(title) => update({ ...actor, title })} width={200} />
+              <ColorField value={actor.color} onChange={(color) => update({ ...actor, color })} />
             </Row>
           )}
         />
@@ -223,12 +306,11 @@ function ItemRows({
           />
         </td>
         <td className="p-1">
-          <input
-            className={cn(fieldClass, 'h-7 w-28 text-xs')}
-            value={item.actor ?? ''}
-            placeholder="Who"
-            aria-label={`Actor of item ${index + 1}`}
-            onChange={(e) => onChange({ ...item, actor: e.target.value || undefined })}
+          <ActorInput
+            value={item.actor}
+            actors={block.actors ?? []}
+            label={`Actor of item ${index + 1}`}
+            onChange={(actor) => onChange({ ...item, actor })}
           />
         </td>
         <td className="p-1">

@@ -35,7 +35,7 @@ for (const theme of ['dark', 'light'] as const) {
       await expect(page.locator('.doc-tl-vertical')).toBeVisible()
       await page.locator('#block-history').screenshot({ path: shot('vertical-timeline') })
       await menuItem(page, 'Production access').click()
-      await expect(page.locator('#block-access .doc-tl-actor').first()).toBeVisible()
+      await expect(page.locator('#block-access .doc-badge').first()).toBeVisible()
       await page.locator('#block-access').screenshot({ path: shot('procedure') })
 
       await menuItem(page, 'Kubernetes').click()

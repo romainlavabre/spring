@@ -1260,7 +1260,8 @@ th[style*='center'] .doc-th-button { justify-content: center; }
   font-size: 12.5px;
 }
 .doc-gantt-notes dt { font-weight: 650; }
-.doc-gantt-notes dt span { font-weight: 400; color: var(--doc-muted); margin-left: 6px; }
+.doc-gantt-notes-meta { font-weight: 400; color: var(--doc-muted); margin-left: 6px; }
+.doc-gantt-notes dt .doc-badge { margin-left: 6px; }
 .doc-gantt-notes dd { margin: 0 0 8px; color: var(--doc-fg-soft); }
 .doc-gantt-notes dd p { margin: 0; }
 

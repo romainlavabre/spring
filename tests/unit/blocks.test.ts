@@ -100,6 +100,21 @@ describe('block schemas', () => {
     expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Ask for access', kind: 'event' })
   })
 
+  it('takes declared actors, and accepts an actor that is not one of them as free text', () => {
+    const actors = [
+      { id: 'cto', title: 'CTO', color: 'red' as const },
+      { id: 'lead', title: 'Lead dev' }
+    ]
+    const items = [
+      { id: 'a', title: 'Approve', actor: 'lead' },
+      { id: 'b', title: 'Deploy', actor: 'Ops team' }
+    ]
+    expect(validatePage(page([timeline({ view: 'vertical', actors, items } as never)])).ok).toBe(true)
+    const duplicate = validatePage(page([timeline({ actors: [...actors, { id: 'cto', title: 'Again' }] })]))
+    expect(duplicate.issues).toEqual([{ path: 'blocks[0].actors[2].id', message: 'Duplicate actor id "cto"' }])
+    expect(validatePage(page([timeline({ actors: [{ id: 'x', title: 'X', color: 'mauve' }] } as never)])).issues[0].path).toBe('blocks[0].actors[0].color')
+  })
+
   it('takes an actor on timeline items, and no status by default', () => {
     const result = validatePage(page([timeline({ view: 'vertical', items: [{ id: 'a', title: 'Approve', actor: 'Lead dev' }] as never })]))
     expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Approve', kind: 'event', actor: 'Lead dev' })

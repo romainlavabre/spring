@@ -154,10 +154,15 @@ export function seedDemo(dir: string, name = 'Acme docs'): void {
         type: 'timeline',
         view: 'vertical',
         lanes: [],
+        actors: [
+          { id: 'dev', title: 'Developer', color: 'blue' },
+          { id: 'lead', title: 'Lead dev', color: 'violet' },
+          { id: 'cto', title: 'CTO', color: 'red' }
+        ],
         items: [
-          { id: 'request', title: 'Request the access', kind: 'event', actor: 'Developer', description: 'Open a ticket with the project and the role.' },
-          { id: 'approve', title: 'Approve the request', kind: 'event', actor: 'Lead dev' },
-          { id: 'grant', title: 'Grant the access', kind: 'milestone', actor: 'CTO', description: 'Valid for 90 days.' }
+          { id: 'request', title: 'Request the access', kind: 'event', actor: 'dev', description: 'Open a ticket with the project and the role.' },
+          { id: 'approve', title: 'Approve the request', kind: 'event', actor: 'lead' },
+          { id: 'grant', title: 'Grant the access', kind: 'milestone', actor: 'cto', description: 'Valid for 90 days.' }
         ]
       }
     ]

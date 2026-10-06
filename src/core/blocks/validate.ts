@@ -50,6 +50,12 @@ function checkBlock(block: Block, at: string, seen: Map<string, string>, ctx: Va
 
   if (block.type === 'timeline') {
     const lanes = new Set(block.lanes.map((l) => l.id))
+    const actors = new Set<string>()
+    // An actor that is not declared is free text: it is not checked.
+    block.actors?.forEach((actor, i) => {
+      if (actors.has(actor.id)) add(`.actors[${i}].id`, `Duplicate actor id "${actor.id}"`)
+      actors.add(actor.id)
+    })
     const items = new Set<string>()
     block.items.forEach((item, i) => {
       if (items.has(item.id)) add(`.items[${i}].id`, `Duplicate item id "${item.id}"`)

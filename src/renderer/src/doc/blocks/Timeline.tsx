@@ -27,8 +27,32 @@ function itemEnd(item: Dated): number {
   return item.kind === 'phase' && item.end ? endDay(item.end) : item.kind === 'phase' ? endDay(item.start) : startDay(item.start)
 }
 
-/** Who does the item, in a procedure. */
-function Actor({ actor }: { actor: string }) {
+interface DeclaredActor {
+  title: string
+  color: Color
+}
+type Actors = Map<string, DeclaredActor>
+
+/** The actors of the block by id, with their color, or one of the palette like lanes. */
+function declaredActors(block: TimelineBlock): Actors {
+  return new Map((block.actors ?? []).map((actor, i) => [actor.id, { title: actor.title, color: actor.color ?? LANE_COLORS[i % LANE_COLORS.length] }]))
+}
+
+/** The name of the actor of an item: the title of a declared actor, or the text as written. */
+function actorName(actor: string, actors: Actors): string {
+  return actors.get(actor)?.title ?? actor
+}
+
+/** Who does the item, in a procedure: the badge of a declared actor, or the text as written. */
+function Actor({ actor, actors }: { actor: string; actors: Actors }) {
+  const declared = actors.get(actor)
+  if (declared) {
+    return (
+      <span className="doc-badge" data-color={declared.color}>
+        {declared.title}
+      </span>
+    )
+  }
   return (
     <span className="doc-tl-actor">
       <User className="size-3" />
@@ -74,6 +98,7 @@ export function TimelineView({ block }: { block: TimelineBlock }) {
 function Undated({ block, items }: { block: TimelineBlock; items: Item[] }) {
   const follow = useFollow()
   const colors = laneColors(block)
+  const actors = declaredActors(block)
   return (
     <div className="doc-gantt-undated">
       <span className="doc-gantt-undated-title">Not dated</span>
@@ -82,11 +107,13 @@ function Undated({ block, items }: { block: TimelineBlock; items: Item[] }) {
           key={item.id}
           className={clsx('doc-gantt-undated-item', item.status && `is-${item.status}`, item.link && 'is-link')}
           data-color={item.lane ? (colors.get(item.lane) ?? 'gray') : 'red'}
-          title={[item.actor, item.status && STATUS_LABELS[item.status]].filter(Boolean).join(' · ') || undefined}
+          title={[item.actor && actorName(item.actor, actors), item.status && STATUS_LABELS[item.status]].filter(Boolean).join(' · ') || undefined}
           onClick={() => item.link && follow(item.link)}
         >
           {item.kind === 'milestone' ? <Diamond className="size-3" /> : <span className="doc-gantt-undated-dot" />}
           {item.title}
+          {/* A declared actor shows on the chip; free text stays in the tooltip. */}
+          {item.actor && actors.has(item.actor) && <Actor actor={item.actor} actors={actors} />}
         </span>
       ))}
     </div>
@@ -99,6 +126,7 @@ function VerticalTimeline({ block, items: all }: { block: TimelineBlock; items: 
   const follow = useFollow()
   const colors = laneColors(block)
   const lanes = new Map(block.lanes.map((lane) => [lane.id, lane.title]))
+  const actors = declaredActors(block)
   // Sorted by date when every item has one; otherwise in the order they are written.
   const items = all.every(isDated) ? [...all].sort((a, b) => startDay(a.start) - startDay(b.start)) : all
   const years = new Set(items.filter(isDated).map((item) => item.start.slice(0, 4)))
@@ -131,7 +159,7 @@ function VerticalTimeline({ block, items: all }: { block: TimelineBlock; items: 
                 )}
                 {(item.actor || item.status) && (
                   <span className="doc-tl-meta-end">
-                    {item.actor && <Actor actor={item.actor} />}
+                    {item.actor && <Actor actor={item.actor} actors={actors} />}
                     {item.status && <StatusPill status={item.status} />}
                   </span>
                 )}
@@ -238,6 +266,7 @@ function useWidth(): [React.RefObject<HTMLDivElement | null>, number] {
 }
 
 function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }) {
+  const actors = declaredActors(block)
   const follow = useFollow()
   const { printing } = useDoc()
   const [areaRef, measured] = useWidth()
@@ -402,7 +431,7 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
                 <div className="doc-gantt-card-title">{hoveredItem.item.title}</div>
                 <div className="doc-gantt-card-meta">
                   <span>{formatRange(hoveredItem.item.start, hoveredItem.item.kind === 'phase' ? hoveredItem.item.end : undefined)}</span>
-                  {hoveredItem.item.actor && <Actor actor={hoveredItem.item.actor} />}
+                  {hoveredItem.item.actor && <Actor actor={hoveredItem.item.actor} actors={actors} />}
                   {hoveredItem.item.status && <StatusPill status={hoveredItem.item.status} />}
                 </div>
                 {hoveredItem.item.description && (
@@ -416,7 +445,7 @@ function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }
         </div>
       </div>
       <GanttLegend items={dated} showToday={showToday} />
-      {printing && <GanttNotes items={dated} />}
+      {printing && <GanttNotes items={dated} actors={actors} />}
     </div>
   )
 }
@@ -448,7 +477,7 @@ function GanttLegend({ items, showToday }: { items: Item[]; showToday: boolean }
 }
 
 /** In print, descriptions cannot be hovered: they are listed under the chart. */
-function GanttNotes({ items }: { items: Dated[] }) {
+function GanttNotes({ items, actors }: { items: Dated[]; actors: Actors }) {
   const described = items.filter((item) => item.description)
   if (described.length === 0) return null
   return (
@@ -456,8 +485,9 @@ function GanttNotes({ items }: { items: Dated[] }) {
       {described.map((item) => (
         <div key={item.id}>
           <dt>
-            {item.title} <span>{formatRange(item.start, item.kind === 'phase' ? item.end : undefined)}</span>
-            {item.actor && <span>· {item.actor}</span>}
+            {item.title} <span className="doc-gantt-notes-meta">{formatRange(item.start, item.kind === 'phase' ? item.end : undefined)}</span>
+            {item.actor &&
+              (actors.has(item.actor) ? <Actor actor={item.actor} actors={actors} /> : <span className="doc-gantt-notes-meta">· {item.actor}</span>)}
           </dt>
           <dd>
             <Markdown>{item.description!}</Markdown>
