@@ -153,6 +153,7 @@ export function seedDemo(dir: string, name = 'Acme docs'): void {
         id: 'access',
         type: 'timeline',
         view: 'vertical',
+        lanes: [],
         items: [
           { id: 'request', title: 'Request the access', kind: 'event', actor: 'Developer', description: 'Open a ticket with the project and the role.' },
           { id: 'approve', title: 'Approve the request', kind: 'event', actor: 'Lead dev' },
