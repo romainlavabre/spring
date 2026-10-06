@@ -42,9 +42,15 @@ Leaving a page, switching workspace or quitting with unsaved changes asks whethe
 | **Cards** | A grid of cards with an icon, a color and a link to a page or a website. |
 | **Tabs** | Blocks grouped under tabs; each tab holds its own blocks. |
 | **Collapsible** | Blocks hidden under a summary. |
-| **Diagram** | A [Mermaid](https://mermaid.js.org/intro/syntax-reference.html) diagram: flowchart, sequence, entity-relationship, class, state, Gantt… |
-| **Image** | An image of the workspace, small, medium or full width, with a caption. Click to zoom. |
+| **Diagram** | A [Mermaid](https://mermaid.js.org/intro/syntax-reference.html) diagram: flowchart, sequence, entity-relationship, class, state, Gantt… Click to open it in full screen. |
+| **Image** | An image of the workspace, small, medium or full width, with a caption. Click to open it in full screen. |
 | **Divider** | A horizontal line. |
+
+A diagram or an image opens over the whole window with a click, or with the expand button at its top right corner. The
+wheel or `+` and `-` zoom, a drag moves it, a double click zooms where it points, `0` fits it back to the window and
+`Escape` closes.
+
+![A diagram in full screen](images/lightbox.png)
 
 ![Table](images/table.png)
 

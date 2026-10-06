@@ -1,10 +1,11 @@
 // Text, callouts, steps, cards, images and dividers.
 import clsx from 'clsx'
-import { AlertTriangle, ArrowUpRight, CheckCircle2, Info, Lightbulb, OctagonAlert, StickyNote, X } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, CheckCircle2, Info, Lightbulb, OctagonAlert, StickyNote } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { CalloutBlock, CardsBlock, ImageBlock, StepsBlock, TextBlock } from '@core/blocks/schema'
 import { useDoc, useFollow } from '../context'
 import { NamedIcon } from '../Icon'
+import { ExpandButton, Lightbox } from '../Lightbox'
 import { Markdown, Prose } from '../Markdown'
 
 export function TextView({ block }: { block: TextBlock }) {
@@ -93,15 +94,15 @@ export function ImageView({ block }: { block: ImageBlock }) {
   const src = `${assetBase}/${encodeURIComponent(block.asset)}`
   return (
     <figure className={clsx('doc-image', `is-${block.width ?? 'full'}`)}>
-      <img src={src} alt={block.alt ?? block.caption ?? ''} onClick={() => !printing && setZoomed(true)} />
+      <div className="doc-zoomable">
+        <img src={src} alt={block.alt ?? block.caption ?? ''} onClick={() => !printing && setZoomed(true)} />
+        {!printing && <ExpandButton onClick={() => setZoomed(true)} />}
+      </div>
       {block.caption && <figcaption>{block.caption}</figcaption>}
       {zoomed && (
-        <div className="doc-lightbox" onClick={() => setZoomed(false)} role="dialog" aria-label="Image">
-          <img src={src} alt={block.alt ?? ''} />
-          <button type="button" aria-label="Close" className="doc-lightbox-close">
-            <X className="size-5" />
-          </button>
-        </div>
+        <Lightbox label={block.caption ?? block.alt ?? 'Image'} onClose={() => setZoomed(false)}>
+          <img src={src} alt={block.alt ?? ''} draggable={false} />
+        </Lightbox>
       )}
     </figure>
   )

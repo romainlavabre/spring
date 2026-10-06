@@ -116,7 +116,20 @@ test('reads the documentation: links, search, copy, PDF', async () => {
     for (const selector of ['.doc-callout', '.doc-gantt', '.doc-table', '.doc-code', '.doc-steps', '.doc-tabs', '.doc-details', '.doc-cards', '.doc-divider']) {
       await expect(page.locator(selector).first()).toBeVisible()
     }
-    await expect(page.locator('.doc-mermaid svg')).toBeVisible()
+    await expect(page.locator('.doc-mermaid-svg svg')).toBeVisible()
+
+    // A diagram opens in full screen, zooms and closes with Escape.
+    await page.locator('.doc-mermaid').hover()
+    await page.locator('.doc-mermaid').getByRole('button', { name: 'Expand' }).click()
+    const lightbox = page.getByRole('dialog', { name: 'Request path' })
+    await expect(lightbox.locator('svg').first()).toBeVisible()
+    const fitted = await lightbox.locator('.doc-mermaid-svg').boundingBox()
+    expect(fitted!.width).toBeGreaterThan(1000)
+    await lightbox.getByRole('button', { name: 'Zoom in' }).click()
+    await expect(lightbox.getByText('125%')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(lightbox).toBeHidden()
+
     await expect(page.locator('.doc-code-body .shiki span[style]').first()).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'On this page' })).toBeHidden()
 
@@ -132,6 +145,12 @@ test('reads the documentation: links, search, copy, PDF', async () => {
     // Tabs and collapsible blocks.
     await page.getByRole('tab', { name: 'Diagram image' }).click()
     await expect(page.locator('.doc-image img')).toHaveJSProperty('naturalWidth', 1)
+    // An image opens in full screen too; a click on the backdrop closes it.
+    await page.locator('.doc-image img').click()
+    const image = page.getByRole('dialog', { name: 'Architecture' })
+    await expect(image.locator('img')).toBeVisible()
+    await image.locator('.doc-lightbox-stage').click({ position: { x: 10, y: 10 } })
+    await expect(image).toBeHidden()
     await page.getByRole('button', { name: 'Why GKE rather than EKS?' }).click()
     await expect(page.getByText('The data already lives in BigQuery.')).toBeVisible()
 

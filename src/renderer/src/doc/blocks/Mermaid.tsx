@@ -2,6 +2,7 @@
 import { useEffect, useId, useState } from 'react'
 import type { MermaidBlock } from '@core/blocks/schema'
 import { useDoc, usePending } from '../context'
+import { ExpandButton, Lightbox } from '../Lightbox'
 
 type MermaidApi = (typeof import('mermaid'))['default']
 let mermaid: Promise<MermaidApi> | null = null
@@ -38,6 +39,7 @@ export function MermaidView({ block }: { block: MermaidBlock }) {
   const id = `mermaid-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const key = `${dark && !printing}\u0000${block.source}`
   const [result, setResult] = useState<{ key: string; svg?: string; error?: string } | null>(null)
+  const [zoomed, setZoomed] = useState(false)
   usePending(result?.key === key)
 
   useEffect(() => {
@@ -59,7 +61,15 @@ export function MermaidView({ block }: { block: MermaidBlock }) {
       {result?.key === key && result.error ? (
         <pre className="doc-mermaid-error">Diagram error: {result.error}</pre>
       ) : result?.key === key && result.svg ? (
-        <div className="doc-mermaid-svg" dangerouslySetInnerHTML={{ __html: result.svg }} />
+        <>
+          <div className="doc-mermaid-svg" onClick={() => !printing && setZoomed(true)} dangerouslySetInnerHTML={{ __html: result.svg }} />
+          {!printing && <ExpandButton onClick={() => setZoomed(true)} />}
+          {zoomed && (
+            <Lightbox label={block.caption ?? 'Diagram'} onClose={() => setZoomed(false)}>
+              <div className="doc-mermaid-svg is-zoomed" dangerouslySetInnerHTML={{ __html: result.svg }} />
+            </Lightbox>
+          )}
+        </>
       ) : (
         <div className="doc-mermaid-loading">Drawing the diagram…</div>
       )}

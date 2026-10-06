@@ -25,6 +25,10 @@ for (const theme of ['dark', 'light'] as const) {
       await page.locator('#block-envs').screenshot({ path: shot('table') })
       await page.locator('#block-values').scrollIntoViewIfNeeded()
       await page.locator('#block-values').screenshot({ path: shot('code') })
+      await page.locator('.doc-mermaid-svg').click()
+      await expect(page.getByRole('dialog', { name: 'Request path' })).toBeVisible()
+      await page.screenshot({ path: shot('lightbox') })
+      await page.keyboard.press('Escape')
 
       await menuItem(page, 'Process').click()
       await menuItem(page, 'Release').click()
