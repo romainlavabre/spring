@@ -1,7 +1,8 @@
 # PDF export
 
 **PDF** at the top right of a page, or **Export as PDF** in the menu of a page or a section, asks where to save the
-file (the Downloads folder by default).
+file (the Downloads folder by default). Once saved, **Open** in the notice opens the PDF in the default viewer, and
+**Show in folder** shows it in the file manager.
 
 - A **page** is printed as it reads, in the light theme.
 - A **section** starts with a cover (its title, description and the date) and its contents, then every page of the

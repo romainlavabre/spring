@@ -62,6 +62,10 @@ export interface Api {
   exporter: {
     /** Exports a page, or every page of a section, as a PDF chosen in a save dialog; returns the file, null when cancelled. */
     pdf(args: { path: string }): Promise<string | null>
+    /** Opens a PDF exported in this session with the default viewer. */
+    open(args: { file: string }): Promise<void>
+    /** Shows a PDF exported in this session in the file manager. */
+    reveal(args: { file: string }): Promise<void>
   }
   print: {
     /** What a print window renders. */
@@ -124,7 +128,7 @@ export const API_METHODS: { [D in keyof Api]: (keyof Api[D])[] } = {
     'theme'
   ],
   assets: ['list', 'add', 'pick'],
-  exporter: ['pdf'],
+  exporter: ['pdf', 'open', 'reveal'],
   print: ['job'],
   dialog: ['openDirectory'],
   app: ['info', 'close', 'openExternal'],

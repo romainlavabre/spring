@@ -20,6 +20,13 @@ export interface Services {
 }
 
 export function createHandlers({ workspace, content, exporter, updater, window, closeWindow }: Services): Api {
+  // The interface may open the PDFs it exported, and no other file.
+  const exported = new Set<string>()
+  const exportedFile = (file: string): string => {
+    if (!exported.has(file)) throw new Error('Only the PDFs exported by Spring can be opened from here')
+    return file
+  }
+
   return {
     workspace: {
       async state() {
@@ -107,7 +114,15 @@ export function createHandlers({ workspace, content, exporter, updater, window, 
         const result = win ? await dialog.showSaveDialog(win, options) : await dialog.showSaveDialog(options)
         if (result.canceled || !result.filePath) return null
         await exporter.export(repo.path, path, result.filePath, repo.name)
+        exported.add(result.filePath)
         return result.filePath
+      },
+      async open({ file }) {
+        const error = await shell.openPath(exportedFile(file))
+        if (error) throw new Error(`Cannot open ${file}: ${error}`)
+      },
+      async reveal({ file }) {
+        shell.showItemInFolder(exportedFile(file))
       }
     },
     print: {

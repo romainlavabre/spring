@@ -3,25 +3,34 @@ import clsx from 'clsx'
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { create } from 'zustand'
+import { errorMessage } from '../lib/bridge'
 import { Button, Dialog, Input } from './ui'
 
 // -------------------------------------------------------------------- toasts
 
 type ToastKind = 'info' | 'success' | 'error' | 'warning'
 
+export interface ToastAction {
+  label: string
+  run: () => void | Promise<void>
+}
+
 interface Toast {
   id: number
   kind: ToastKind
   message: string
+  actions: ToastAction[]
 }
 
 const useToasts = create<{ toasts: Toast[] }>(() => ({ toasts: [] }))
 let nextToastId = 1
 
-export function toast(message: string, kind: ToastKind = 'info'): void {
+/** Shows a message; its actions are buttons that run then dismiss it. */
+export function toast(message: string, kind: ToastKind = 'info', actions: ToastAction[] = []): void {
   const id = nextToastId++
-  useToasts.setState((s) => ({ toasts: [...s.toasts, { id, kind, message }] }))
-  setTimeout(() => dismiss(id), kind === 'error' ? 9000 : 4000)
+  useToasts.setState((s) => ({ toasts: [...s.toasts, { id, kind, message, actions }] }))
+  // A toast with buttons stays longer, to leave time to use them.
+  setTimeout(() => dismiss(id), kind === 'error' || actions.length > 0 ? 9000 : 4000)
 }
 
 function dismiss(id: number): void {
@@ -45,7 +54,26 @@ export function Toaster() {
           className="pointer-events-auto flex items-start gap-2 rounded-md border border-border bg-panel-2 px-3 py-2 shadow-xl"
         >
           <div className="mt-0.5">{ICONS[t.kind]}</div>
-          <div className="selectable min-w-0 flex-1 whitespace-pre-wrap break-words text-xs">{t.message}</div>
+          <div className="min-w-0 flex-1">
+            <div className="selectable whitespace-pre-wrap break-words text-xs">{t.message}</div>
+            {t.actions.length > 0 && (
+              <div className="mt-2 flex gap-1.5">
+                {t.actions.map((action, i) => (
+                  <Button
+                    key={action.label}
+                    size="sm"
+                    variant={i === 0 ? 'primary' : undefined}
+                    onClick={() => {
+                      dismiss(t.id)
+                      void Promise.resolve(action.run()).catch((error: unknown) => toast(errorMessage(error), 'error'))
+                    }}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
           <button className="text-muted hover:text-fg" onClick={() => dismiss(t.id)} aria-label="Dismiss">
             <X className="size-3.5" />
           </button>

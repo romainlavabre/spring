@@ -178,6 +178,20 @@ test('reads the documentation: links, search, copy, PDF', async () => {
     expect(existsSync(pdf)).toBe(true)
     expect(statSync(pdf).size).toBeGreaterThan(20_000)
     expect(readFileSync(pdf).subarray(0, 5).toString()).toBe('%PDF-')
+
+    // The notice opens the PDF, or shows it in its folder, without looking for it.
+    await app.evaluate(({ shell }) => {
+      const calls: string[] = []
+      ;(globalThis as { shellCalls?: string[] }).shellCalls = calls
+      shell.openPath = (async (file: string) => (calls.push(`open ${file}`), '')) as typeof shell.openPath
+      shell.showItemInFolder = (file: string) => void calls.push(`reveal ${file}`)
+    })
+    await page.getByRole('button', { name: 'Open', exact: true }).click()
+    await expect(page.getByText(`PDF saved to ${pdf}`)).toBeHidden()
+    await menuItem(page, 'Infra').click({ button: 'right' })
+    await page.getByRole('menuitem', { name: 'Export as PDF' }).click()
+    await page.getByRole('button', { name: 'Show in folder' }).click()
+    expect(await app.evaluate(() => (globalThis as { shellCalls?: string[] }).shellCalls)).toEqual([`open ${pdf}`, `reveal ${pdf}`])
   } finally {
     await close()
   }

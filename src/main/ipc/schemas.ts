@@ -53,7 +53,9 @@ export const schemas: { [D in keyof Api]: { [M in keyof Api[D]]: z.ZodType } } =
     pick: none
   },
   exporter: {
-    pdf: z.object({ path })
+    pdf: z.object({ path }),
+    open: z.object({ file: z.string().min(1) }),
+    reveal: z.object({ file: z.string().min(1) })
   },
   print: {
     job: z.object({ token: z.string().min(1) })
