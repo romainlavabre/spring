@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- The tabby cat of Spring, resting its chin on an open book of documentation. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262a34"/>
+      <stop offset="1" stop-color="#15171c"/>
+    </linearGradient>
+    <linearGradient id="cover" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d9474f"/>
+      <stop offset="0.45" stop-color="#f26b6f"/>
+      <stop offset="1" stop-color="#e0525a"/>
+    </linearGradient>
+    <linearGradient id="coverEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9d9d"/>
+      <stop offset="1" stop-color="#f0646a"/>
+    </linearGradient>
+    <linearGradient id="paperLeft" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fffaf3"/>
+      <stop offset="0.8" stop-color="#f6ebdc"/>
+      <stop offset="1" stop-color="#e2d2bd"/>
+    </linearGradient>
+    <linearGradient id="paperRight" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#fffaf3"/>
+      <stop offset="0.8" stop-color="#f6ebdc"/>
+      <stop offset="1" stop-color="#e2d2bd"/>
+    </linearGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a39380"/>
+      <stop offset="1" stop-color="#7a6b5b"/>
+    </linearGradient>
+    <linearGradient id="ear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9d8d7a"/>
+      <stop offset="1" stop-color="#857563"/>
+    </linearGradient>
+    <linearGradient id="earInside" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7cfc9"/>
+      <stop offset="1" stop-color="#e9aaa6"/>
+    </linearGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ece6de"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="0.45" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#c6d4bd"/>
+      <stop offset="0.6" stop-color="#8fa892"/>
+      <stop offset="1" stop-color="#5d7566"/>
+    </radialGradient>
+    <clipPath id="head">
+      <path d="M256 118 C314 118 360 150 369 202 C376 246 356 288 320 306 C300 316 278 320 256 320 C234 320 212 316 192 306 C156 288 136 246 143 202 C152 150 198 118 256 118 Z"/>
+    </clipPath>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="114" fill="url(#tile)"/>
+  <rect x="1.5" y="1.5" width="509" height="509" rx="112.5" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="3"/>
+
+  <g transform="translate(0 -6)">
+    <!-- The open book: red cover, two cream pages with lines of text. -->
+    <path d="M256 356 C214 336 150 332 90 340 L90 438 C150 430 214 434 256 454 C298 434 362 430 422 438 L422 340 C362 332 298 336 256 356 Z" fill="url(#cover)"/>
+    <path d="M90 438 C150 430 214 434 256 454 C298 434 362 430 422 438 L422 446 C362 438 298 442 256 462 C214 442 150 438 90 446 Z" fill="#b8323b"/>
+    <path d="M256 344 C216 324 158 320 102 326 L102 428 C158 422 216 426 256 446 Z" fill="url(#paperLeft)"/>
+    <path d="M256 344 C296 324 354 320 410 326 L410 428 C354 422 296 426 256 446 Z" fill="url(#paperRight)"/>
+    <path d="M256 344 L256 446" stroke="#d8c4ab" stroke-width="3"/>
+    <g fill="none" stroke="#e7b9b3" stroke-width="6" stroke-linecap="round">
+      <path d="M122 372 C160 368 196 370 232 380"/>
+      <path d="M122 394 C160 390 196 392 232 402"/>
+      <path d="M122 416 C150 413 172 414 196 418"/>
+      <path d="M390 372 C352 368 316 370 280 380"/>
+      <path d="M390 394 C352 390 316 392 280 402"/>
+      <path d="M390 416 C362 413 340 414 316 418"/>
+    </g>
+
+    <!-- Ears: very large and pointed, pink inside with white tufts. -->
+    <!-- Written out rather than mirrored with <use>, which some SVG viewers do not render. -->
+    <path d="M156 200 C142 148 136 92 148 38 C188 54 226 88 248 128 Z" fill="url(#ear)"/>
+    <path d="M168 176 C158 136 156 98 162 64 C190 80 214 104 230 130 Z" fill="url(#earInside)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.75">
+      <path d="M176 156 C180 140 186 128 194 118"/>
+      <path d="M186 164 C192 150 200 140 208 134"/>
+    </g>
+    <path d="M356 200 C370 148 376 92 364 38 C324 54 286 88 264 128 Z" fill="url(#ear)"/>
+    <path d="M344 176 C354 136 356 98 350 64 C322 80 298 104 282 130 Z" fill="url(#earInside)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.75">
+      <path d="M336 156 C332 140 326 128 318 118"/>
+      <path d="M326 164 C320 150 312 140 304 134"/>
+    </g>
+
+    <!-- Head: tabby coat with an M on the forehead, white blaze and muzzle. -->
+    <path d="M256 118 C314 118 360 150 369 202 C376 246 356 288 320 306 C300 316 278 320 256 320 C234 320 212 316 192 306 C156 288 136 246 143 202 C152 150 198 118 256 118 Z" fill="url(#coat)"/>
+    <g clip-path="url(#head)">
+      <g fill="none" stroke="#4a3f35" stroke-linecap="round" opacity="0.55">
+        <path d="M226 124 C230 140 232 156 230 172" stroke-width="5"/>
+        <path d="M244 120 C247 138 248 154 246 166" stroke-width="5"/>
+        <path d="M268 120 C265 138 264 154 266 166" stroke-width="5"/>
+        <path d="M286 124 C282 140 280 156 282 172" stroke-width="5"/>
+        <path d="M208 132 C214 146 218 160 218 176" stroke-width="4"/>
+        <path d="M304 132 C298 146 294 160 294 176" stroke-width="4"/>
+        <path d="M146 222 C160 220 172 224 182 232" stroke-width="4"/>
+        <path d="M150 246 C164 244 176 248 186 256" stroke-width="4"/>
+        <path d="M366 222 C352 220 340 224 330 232" stroke-width="4"/>
+        <path d="M362 246 C348 244 336 248 326 256" stroke-width="4"/>
+        <path d="M176 182 C186 190 192 198 196 208" stroke-width="3.5"/>
+        <path d="M336 182 C326 190 320 198 316 208" stroke-width="3.5"/>
+      </g>
+      <path d="M256 164 C246 184 242 204 240 222 C214 234 194 260 198 286 C204 310 230 322 256 322 C282 322 308 310 314 286 C318 260 298 234 272 222 C270 204 266 184 256 164 Z" fill="url(#fur)"/>
+    </g>
+
+    <!-- Eyes: big, round, green-grey. -->
+    <g>
+      <circle cx="208" cy="214" r="26" fill="#2b2622"/>
+      <circle cx="304" cy="214" r="26" fill="#2b2622"/>
+      <circle cx="208" cy="214" r="23" fill="url(#iris)"/>
+      <circle cx="304" cy="214" r="23" fill="url(#iris)"/>
+      <ellipse cx="209" cy="215" rx="10" ry="13" fill="#161412"/>
+      <ellipse cx="303" cy="215" rx="10" ry="13" fill="#161412"/>
+      <circle cx="199" cy="204" r="6.5" fill="#ffffff"/>
+      <circle cx="295" cy="204" r="6.5" fill="#ffffff"/>
+      <circle cx="216" cy="226" r="2.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="312" cy="226" r="2.6" fill="#ffffff" opacity="0.7"/>
+    </g>
+
+    <!-- Pink nose, mouth and whiskers. -->
+    <path d="M243 262 C243 254 269 254 269 262 C269 270 261 276 256 279 C251 276 243 270 243 262 Z" fill="#ef9f9f"/>
+    <ellipse cx="252" cy="259" rx="5" ry="2.5" fill="#ffffff" opacity="0.45"/>
+    <path d="M256 279 v8 M256 287 c-6 6 -14 6 -19 1 M256 287 c6 6 14 6 19 1" fill="none" stroke="#c4a59b" stroke-width="3.5" stroke-linecap="round"/>
+    <g fill="none" stroke="#f7f3ee" stroke-width="2" stroke-linecap="round" opacity="0.85">
+      <path d="M226 276 C200 270 176 268 146 270"/>
+      <path d="M226 284 C200 284 178 288 150 296"/>
+      <path d="M228 292 C206 298 186 306 164 318"/>
+      <path d="M286 276 C312 270 336 268 366 270"/>
+      <path d="M286 284 C312 284 334 288 362 296"/>
+      <path d="M284 292 C306 298 326 306 348 318"/>
+    </g>
+
+    <!-- White paws over the top of the book. -->
+    <g fill="url(#fur)" stroke="#d8cfc2" stroke-width="3">
+      <path d="M150 326 C150 308 196 304 204 320 C210 334 200 352 180 354 C160 356 150 342 150 326 Z"/>
+      <path d="M362 326 C362 308 316 304 308 320 C302 334 312 352 332 354 C352 356 362 342 362 326 Z"/>
+    </g>
+    <g stroke="#cfc4b5" stroke-width="3" stroke-linecap="round">
+      <path d="M168 338 v10 M184 340 v10"/>
+      <path d="M344 338 v10 M328 340 v10"/>
+    </g>
+  </g>
+
+  <!-- Page badge: a sheet of documentation with its corner folded. -->
+  <g transform="translate(404 404) scale(0.62) translate(-378 -378)">
+    <circle cx="378" cy="378" r="98" fill="#15171c"/>
+    <circle cx="378" cy="378" r="84" fill="#20232b" stroke="#f26b6f" stroke-width="7"/>
+    <path d="M348 322 h38 l26 26 v76 a8 8 0 0 1 -8 8 h-56 a8 8 0 0 1 -8 -8 v-94 a8 8 0 0 1 8 -8 z" fill="#20232b" stroke="#eef0f4" stroke-width="11" stroke-linejoin="round"/>
+    <path d="M386 322 v18 a8 8 0 0 0 8 8 h18" fill="none" stroke="#eef0f4" stroke-width="11" stroke-linejoin="round"/>
+    <g stroke-width="10" stroke-linecap="round">
+      <path d="M360 374 h40" stroke="#f26b6f"/>
+      <path d="M360 398 h40" stroke="#eef0f4"/>
+    </g>
+  </g>
+</svg>
