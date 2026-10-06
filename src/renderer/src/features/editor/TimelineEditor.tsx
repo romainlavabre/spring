@@ -19,14 +19,26 @@ function uniqueId(base: string, taken: string[]): string {
   return id
 }
 
-function DateInput({ value, onChange, label, disabled }: { value: string; onChange: (value: string) => void; label: string; disabled?: boolean }) {
+function DateInput({
+  value,
+  onChange,
+  label,
+  disabled,
+  placeholder = 'YYYY-MM-DD'
+}: {
+  value: string
+  onChange: (value: string) => void
+  label: string
+  disabled?: boolean
+  placeholder?: string
+}) {
   const invalid = !!value && !DATE_PATTERN.test(value)
   return (
     <input
       className={cn(fieldClass, 'h-7 w-[104px] font-mono text-[11.5px]', invalid && 'border-danger text-danger')}
       value={value}
       disabled={disabled}
-      placeholder={disabled ? '—' : 'YYYY-MM-DD'}
+      placeholder={disabled ? '—' : placeholder}
       aria-label={label}
       aria-invalid={invalid}
       title="YYYY, YYYY-MM or YYYY-MM-DD"
@@ -53,11 +65,12 @@ export function TimelineEditor({ block, onChange }: { block: TimelineBlock; onCh
       id: uniqueId(`item-${block.items.length + 1}`, block.items.map((i) => i.id)),
       title: '',
       kind: block.view === 'gantt' ? 'phase' : 'event',
-      start: last?.end ?? last?.start ?? new Date().toISOString().slice(0, 7),
+      // After an undated item, the new one is undated too.
+      start: last ? (last.end ?? last.start) : new Date().toISOString().slice(0, 7),
       status: 'planned',
       lane: last?.lane
     }
-    if (item.kind === 'phase') item.end = item.start
+    if (item.kind === 'phase' && item.start) item.end = item.start
     onChange({ ...block, items: [...block.items, item] })
     setOpen(null)
   }
@@ -191,13 +204,19 @@ function ItemRows({
           </select>
         </td>
         <td className="p-1">
-          <DateInput label={`Start of item ${index + 1}`} value={item.start} onChange={(start) => onChange({ ...item, start })} />
+          <DateInput
+            label={`Start of item ${index + 1}`}
+            value={item.start ?? ''}
+            placeholder="No date"
+            // Without a start, a phase has no end either.
+            onChange={(start) => onChange({ ...item, start: start || undefined, end: start ? item.end : undefined })}
+          />
         </td>
         <td className="p-1">
           <DateInput
             label={`End of item ${index + 1}`}
             value={item.end ?? ''}
-            disabled={item.kind !== 'phase'}
+            disabled={item.kind !== 'phase' || !item.start}
             onChange={(end) => onChange({ ...item, end: end || undefined })}
           />
         </td>

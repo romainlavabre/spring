@@ -32,7 +32,7 @@ Conventions:
 - Inline extras in Markdown: :badge[Prod]{color=red}, :kbd[Ctrl+C].
 - Colors are named: ${COLORS.join(', ')}.
 - Icons are Lucide names in kebab-case: server, database, git-branch, shield-check, rocket, book-open, users, cloud…
-- Dates are YYYY, YYYY-MM or YYYY-MM-DD. Timeline phases have start and end; milestones and events only a start.
+- Dates are YYYY, YYYY-MM or YYYY-MM-DD. Timeline phases have start and end; milestones and events only a start. The start is optional: undated items keep the order they are written in a vertical timeline (dated ones are sorted by date only when every item has a date), and a Gantt chart lists them under the chart.
 - Images: add_asset copies a local image into the workspace, then an image block shows it.
 - Headings ## and ### of text blocks build the table of contents of the page: start sections of a page with them.
 

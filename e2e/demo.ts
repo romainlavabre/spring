@@ -53,7 +53,9 @@ export function seedDemo(dir: string, name = 'Acme docs'): void {
           { id: 'charts', title: 'Helm charts', kind: 'phase', start: '2026-02-23', end: '2026-05-10', lane: 'dev', status: 'current', dependsOn: ['cluster'] },
           { id: 'tests', title: 'Load tests', kind: 'phase', start: '2026-05-01', end: '2026-06-15', lane: 'ops', status: 'planned', dependsOn: ['charts'] },
           { id: 'golive', title: 'Go live', kind: 'milestone', start: '2026-06-22', lane: 'ops', status: 'planned', dependsOn: ['tests'] },
-          { id: 'audit', title: 'Security audit', kind: 'phase', start: '2026-04-01', end: '2026-04-30', lane: 'infra', status: 'blocked', description: 'Waiting for the auditor.' }
+          { id: 'audit', title: 'Security audit', kind: 'phase', start: '2026-04-01', end: '2026-04-30', lane: 'infra', status: 'blocked', description: 'Waiting for the auditor.' },
+          { id: 'decommission', title: 'Decommission the old VMs', kind: 'phase', lane: 'infra', status: 'planned' },
+          { id: 'retro', title: 'Retrospective', kind: 'milestone', lane: 'ops', status: 'planned' }
         ]
       },
       {

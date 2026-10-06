@@ -9,6 +9,10 @@ import { useDoc, useFollow } from '../context'
 import { Markdown, Prose } from '../Markdown'
 
 type Item = TimelineBlock['items'][number]
+/** An item with a start: only those have a place on a scale. */
+type Dated = Item & { start: string }
+
+const isDated = (item: Item): item is Dated => !!item.start
 
 const STATUS_LABELS: Record<Item['status'], string> = { done: 'Done', current: 'In progress', planned: 'Planned', blocked: 'Blocked' }
 const LANE_COLORS: Color[] = ['blue', 'violet', 'teal', 'amber', 'pink', 'green', 'orange']
@@ -17,7 +21,7 @@ function laneColors(block: TimelineBlock): Map<string, Color> {
   return new Map(block.lanes.map((lane, i) => [lane.id, lane.color ?? LANE_COLORS[i % LANE_COLORS.length]]))
 }
 
-function itemEnd(item: Item): number {
+function itemEnd(item: Dated): number {
   return item.kind === 'phase' && item.end ? endDay(item.end) : item.kind === 'phase' ? endDay(item.start) : startDay(item.start)
 }
 
@@ -33,39 +37,67 @@ function StatusPill({ status }: { status: Item['status'] }) {
 }
 
 export function TimelineView({ block }: { block: TimelineBlock }) {
-  // While an item is being typed, its dates may not be readable yet: it waits.
-  const items = block.items.filter((item) => DATE_PATTERN.test(item.start) && (!item.end || DATE_PATTERN.test(item.end)))
-  const shown = { ...block, items }
+  // While a date is being typed, it may not be readable yet: its item waits.
+  const items = block.items.filter((item) => (!item.start || DATE_PATTERN.test(item.start)) && (!item.end || DATE_PATTERN.test(item.end)))
+  const dated = items.filter(isDated)
+  const undated = items.filter((item) => !isDated(item))
   return (
     <figure className="doc-timeline">
       {block.title && <figcaption className="doc-timeline-title">{block.title}</figcaption>}
       {items.length === 0 ? (
-        <div className="doc-empty-text">No dated item yet</div>
+        <div className="doc-empty-text">No item yet</div>
       ) : block.view === 'gantt' ? (
-        <Gantt block={shown} />
+        <>
+          {dated.length > 0 ? <Gantt block={block} items={dated} /> : <div className="doc-empty-text">No dated item to draw yet</div>}
+          {undated.length > 0 && <Undated block={block} items={undated} />}
+        </>
       ) : (
-        <VerticalTimeline block={shown} />
+        <VerticalTimeline block={block} items={items} />
       )}
     </figure>
   )
 }
 
+/** A Gantt chart has no place for the items without a date: they are listed under it. */
+function Undated({ block, items }: { block: TimelineBlock; items: Item[] }) {
+  const follow = useFollow()
+  const colors = laneColors(block)
+  return (
+    <div className="doc-gantt-undated">
+      <span className="doc-gantt-undated-title">Not dated</span>
+      {items.map((item) => (
+        <span
+          key={item.id}
+          className={clsx('doc-gantt-undated-item', `is-${item.status}`, item.link && 'is-link')}
+          data-color={item.lane ? (colors.get(item.lane) ?? 'gray') : 'red'}
+          title={STATUS_LABELS[item.status]}
+          onClick={() => item.link && follow(item.link)}
+        >
+          {item.kind === 'milestone' ? <Diamond className="size-3" /> : <span className="doc-gantt-undated-dot" />}
+          {item.title}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 // --------------------------------------------------------------- vertical
 
-function VerticalTimeline({ block }: { block: TimelineBlock }) {
+function VerticalTimeline({ block, items: all }: { block: TimelineBlock; items: Item[] }) {
   const follow = useFollow()
   const colors = laneColors(block)
   const lanes = new Map(block.lanes.map((lane) => [lane.id, lane.title]))
-  const items = [...block.items].sort((a, b) => startDay(a.start) - startDay(b.start))
-  const years = new Set(items.map((item) => item.start.slice(0, 4)))
+  // Sorted by date when every item has one; otherwise in the order they are written.
+  const items = all.every(isDated) ? [...all].sort((a, b) => startDay(a.start) - startDay(b.start)) : all
+  const years = new Set(items.filter(isDated).map((item) => item.start.slice(0, 4)))
   let year = ''
 
   return (
     <ol className="doc-tl-vertical">
       {items.flatMap((item) => {
         const nodes: ReactNode[] = []
-        const itemYear = item.start.slice(0, 4)
-        if (years.size > 1 && itemYear !== year) {
+        const itemYear = item.start?.slice(0, 4)
+        if (itemYear && years.size > 1 && itemYear !== year) {
           year = itemYear
           nodes.push(
             <li key={`year-${year}`} className="doc-tl-year">
@@ -79,7 +111,7 @@ function VerticalTimeline({ block }: { block: TimelineBlock }) {
             <div className="doc-tl-marker">{item.kind === 'milestone' ? <Diamond className="size-3" /> : item.status === 'done' ? <Check className="size-3" /> : null}</div>
             <div className="doc-tl-card">
               <div className="doc-tl-meta">
-                <time>{formatRange(item.start, item.kind === 'phase' ? item.end : undefined)}</time>
+                {item.start && <time>{formatRange(item.start, item.kind === 'phase' ? item.end : undefined)}</time>}
                 {item.lane && lanes.get(item.lane) && (
                   <span className="doc-badge" data-color={color}>
                     {lanes.get(item.lane)}
@@ -114,7 +146,7 @@ const LANE_PAD = 10
 const HEADER = 50
 
 interface Placed {
-  item: Item
+  item: Dated
   start: number
   end: number
   row: number
@@ -137,7 +169,7 @@ function nextMonth(day: number, months = 1): number {
 }
 
 /** The time range shown and its graduations; it leaves room for the labels of the last points. */
-function scale(items: Item[], width: number): { from: number; to: number; ticks: Tick[]; groups: Tick[] } {
+function scale(items: Dated[], width: number): { from: number; to: number; ticks: Tick[]; groups: Tick[] } {
   let from = Math.min(...items.map((i) => startDay(i.start)))
   let to = Math.max(...items.map(itemEnd))
   const daysPerPixel = Math.max(1, to - from) / Math.max(320, width)
@@ -188,14 +220,14 @@ function useWidth(): [React.RefObject<HTMLDivElement | null>, number] {
   return [ref, width]
 }
 
-function Gantt({ block }: { block: TimelineBlock }) {
+function Gantt({ block, items: dated }: { block: TimelineBlock; items: Dated[] }) {
   const follow = useFollow()
   const { printing } = useDoc()
   const [areaRef, measured] = useWidth()
   const width = measured || 640
   const [hovered, setHovered] = useState<string | null>(null)
   const colors = laneColors(block)
-  const { from, to, ticks, groups } = useMemo(() => scale(block.items, width), [block.items, width])
+  const { from, to, ticks, groups } = useMemo(() => scale(dated, width), [dated, width])
   const days = to - from + 1
   const x = (day: number): number => ((day - from) / days) * width
   const pct = (day: number): string => `${((day - from) / days) * 100}%`
@@ -203,9 +235,9 @@ function Gantt({ block }: { block: TimelineBlock }) {
   // Lanes in their order, then the items without lane; each lane packs its items in rows.
   const lanes = useMemo(() => {
     const list = block.lanes.map((lane) => ({ id: lane.id, title: lane.title }))
-    if (block.items.some((item) => !item.lane || !block.lanes.some((l) => l.id === item.lane))) list.push({ id: '', title: block.lanes.length ? 'Other' : '' })
+    if (dated.some((item) => !item.lane || !block.lanes.some((l) => l.id === item.lane))) list.push({ id: '', title: block.lanes.length ? 'Other' : '' })
     return list
-  }, [block.lanes, block.items])
+  }, [block.lanes, dated])
 
   const placed: Placed[] = []
   const laneTops: number[] = []
@@ -214,7 +246,7 @@ function Gantt({ block }: { block: TimelineBlock }) {
   lanes.forEach((lane, laneIndex) => {
     laneTops.push(top)
     const rows: number[] = []
-    const items = block.items
+    const items = dated
       .filter((item) => (lane.id ? item.lane === lane.id : !item.lane || !block.lanes.some((l) => l.id === item.lane)))
       .sort((a, b) => startDay(a.start) - startDay(b.start))
     for (const item of items) {
@@ -365,8 +397,8 @@ function Gantt({ block }: { block: TimelineBlock }) {
           </div>
         </div>
       </div>
-      <GanttLegend items={block.items} showToday={showToday} />
-      {printing && <GanttNotes items={block.items} />}
+      <GanttLegend items={dated} showToday={showToday} />
+      {printing && <GanttNotes items={dated} />}
     </div>
   )
 }
@@ -398,7 +430,7 @@ function GanttLegend({ items, showToday }: { items: Item[]; showToday: boolean }
 }
 
 /** In print, descriptions cannot be hovered: they are listed under the chart. */
-function GanttNotes({ items }: { items: Item[] }) {
+function GanttNotes({ items }: { items: Dated[] }) {
   const described = items.filter((item) => item.description)
   if (described.length === 0) return null
   return (

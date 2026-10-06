@@ -57,7 +57,8 @@ function checkBlock(block: Block, at: string, seen: Map<string, string>, ctx: Va
     })
     block.items.forEach((item, i) => {
       if (item.lane && !lanes.has(item.lane)) add(`.items[${i}].lane`, `Unknown lane "${item.lane}" (lanes: ${[...lanes].join(', ') || 'none'})`)
-      if (item.end && endDay(item.end) < startDay(item.start)) add(`.items[${i}].end`, `Ends (${item.end}) before it starts (${item.start})`)
+      if (item.end && !item.start) add(`.items[${i}].end`, 'An end needs a start: set the start or remove the end')
+      else if (item.end && item.start && endDay(item.end) < startDay(item.start)) add(`.items[${i}].end`, `Ends (${item.end}) before it starts (${item.start})`)
       if (item.end && item.kind !== 'phase') add(`.items[${i}].end`, `Only phases have an end: set kind to "phase" or remove the end`)
       for (const dependency of item.dependsOn ?? []) {
         if (!items.has(dependency)) add(`.items[${i}].dependsOn`, `Unknown item "${dependency}"`)

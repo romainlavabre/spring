@@ -170,6 +170,38 @@ describe('timelines', () => {
     expect(container.querySelector('.doc-tl-meta time')?.textContent).toBe('Jan – Mar 2026')
     expect(container.querySelector('.doc-tl-meta .doc-badge')?.textContent).toBe('Infra')
   })
+
+  it('keeps the written order of a vertical timeline with undated items', () => {
+    const { container } = show({
+      ...plan,
+      view: 'vertical',
+      items: [
+        { id: 'x', title: 'Ask for access', kind: 'event', status: 'done' },
+        { id: 'y', title: 'Install', kind: 'event', start: '2027', status: 'planned' },
+        { id: 'z', title: 'Configure', kind: 'event', start: '2026-05', status: 'planned' },
+        { id: 'w', title: 'Check', kind: 'milestone', status: 'planned' }
+      ]
+    })
+    expect([...container.querySelectorAll('.doc-tl-heading')].map((e) => e.textContent)).toEqual(['Ask for access', 'Install', 'Configure', 'Check'])
+    expect([...container.querySelectorAll('.doc-tl-meta time')].map((e) => e.textContent)).toEqual(['2027', 'May 2026'])
+    expect([...container.querySelectorAll('.doc-tl-year')].map((e) => e.textContent)).toEqual(['2027', '2026'])
+  })
+
+  it('lists the undated items of a Gantt chart under it', () => {
+    const { container, environment } = show({
+      ...plan,
+      items: [...plan.items, { id: 'e', title: 'Retro', kind: 'event', status: 'planned', lane: 'dev', dependsOn: ['d'], link: 'page:process/retro' }]
+    })
+    expect([...container.querySelectorAll('.doc-gantt-bar')]).toHaveLength(3)
+    expect(container.querySelector('.doc-gantt-undated')?.textContent).toBe('Not datedRetro')
+    fireEvent.click(screen.getByText('Retro'))
+    expect(environment.navigate).toHaveBeenCalledWith('process/retro', undefined)
+
+    const { container: none } = show({ ...plan, items: [{ id: 'e', title: 'Someday', kind: 'event', status: 'planned' }] })
+    expect(none.querySelector('.doc-gantt')).toBeNull()
+    expect(none.textContent).toContain('No dated item to draw yet')
+    expect(none.querySelector('.doc-gantt-undated')?.textContent).toContain('Someday')
+  })
 })
 
 describe('other blocks', () => {

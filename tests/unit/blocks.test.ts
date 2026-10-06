@@ -77,7 +77,8 @@ describe('block schemas', () => {
           items: [
             { id: 'a', title: 'A', kind: 'phase', start: '2026-03', end: '2026-02', lane: 'ops', status: 'done' },
             { id: 'b', title: 'B', kind: 'event', start: '2026-03', end: '2026-04', status: 'planned', dependsOn: ['zzz', 'b'] },
-            { id: 'a', title: 'A again', kind: 'event', start: '2026', status: 'planned' }
+            { id: 'a', title: 'A again', kind: 'event', start: '2026', status: 'planned' },
+            { id: 'c', title: 'C', kind: 'phase', end: '2026-04', status: 'planned' }
           ]
         })
       ])
@@ -88,8 +89,15 @@ describe('block schemas', () => {
       'blocks[0].items[0].end: Ends (2026-02) before it starts (2026-03)',
       'blocks[0].items[1].end: Only phases have an end: set kind to "phase" or remove the end',
       'blocks[0].items[1].dependsOn: Unknown item "zzz"',
-      'blocks[0].items[1].dependsOn: An item cannot depend on itself'
+      'blocks[0].items[1].dependsOn: An item cannot depend on itself',
+      'blocks[0].items[3].end: An end needs a start: set the start or remove the end'
     ])
+  })
+
+  it('accepts timeline items without a date', () => {
+    const result = validatePage(page([timeline({ view: 'vertical', items: [{ id: 'a', title: 'Ask for access' }, { id: 'b', title: 'Install', kind: 'phase' }] as never })]))
+    expect(result.ok).toBe(true)
+    expect(result.ok && (result.page.blocks[0] as TimelineBlock).items[0]).toEqual({ id: 'a', title: 'Ask for access', kind: 'event', status: 'planned' })
   })
 
   it('checks the columns of tables', () => {

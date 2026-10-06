@@ -111,8 +111,10 @@ export const timelineBlockSchema = z
           id: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/),
           title: z.string().min(1),
           kind: z.enum(TIMELINE_KINDS).default('event').describe('phase: has an end; milestone: a point, a diamond in Gantt; event: a point'),
-          start: date,
-          end: date.optional().describe('Phases only; inclusive'),
+          start: date
+            .optional()
+            .describe('Optional. Undated items keep their place in a vertical timeline; a Gantt chart lists them under the chart'),
+          end: date.optional().describe('Phases only, with a start; inclusive'),
           lane: z.string().optional(),
           status: z.enum(TIMELINE_STATUSES).default('planned'),
           description: markdown.optional(),

@@ -1246,6 +1246,45 @@ th[style*='center'] .doc-th-button { justify-content: center; }
 .doc-gantt-notes dd { margin: 0 0 8px; color: var(--doc-fg-soft); }
 .doc-gantt-notes dd p { margin: 0; }
 
+/* The items of a Gantt chart without a date, under the chart. */
+.doc-gantt-undated {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+.doc-gantt-undated-title {
+  margin-right: 4px;
+  color: var(--doc-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.doc-gantt-undated-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface-2);
+  color: var(--doc-fg-soft);
+}
+.doc-gantt-undated-item svg { color: var(--tone); }
+.doc-gantt-undated-item.is-link { cursor: pointer; }
+.doc-gantt-undated-item.is-link:hover { color: var(--doc-fg); border-color: var(--tone); }
+.doc-gantt-undated-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--tone);
+}
+.doc-gantt-undated-item.is-planned .doc-gantt-undated-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--tone); }
+.doc-gantt-undated-item.is-blocked .doc-gantt-undated-dot { background: #ef5d5d; }
+
 /* ------------------------------------------------------- toc, page nav */
 
 .doc-toc {
