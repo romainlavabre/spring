@@ -11,6 +11,8 @@ import type { InstallKind, UpdateStatus } from '@shared/types'
 
 const REPO = 'romainlavabre/spring'
 const NAME = 'spring'
+/** The .deb package: "spring" is taken in the Ubuntu archive. */
+const DEB_PACKAGE = 'spring-doc'
 const LATEST_RELEASE_URL = `https://api.github.com/repos/${REPO}/releases/latest`
 export const INSTALL_SCRIPT_URL = `https://raw.githubusercontent.com/${REPO}/master/install.sh`
 
@@ -117,7 +119,7 @@ async function detectInstallKind(): Promise<InstallKind> {
   if (dirname(process.execPath) === resolve(appImageInstallDir())) return 'appimage'
   if (process.execPath.startsWith('/opt/')) {
     try {
-      const { code, output } = await run('dpkg-query', ['-W', '-f=${Status}', NAME])
+      const { code, output } = await run('dpkg-query', ['-W', '-f=${Status}', DEB_PACKAGE])
       if (code === 0 && output.includes('install ok installed')) return 'deb'
     } catch {
       // No dpkg on this system.

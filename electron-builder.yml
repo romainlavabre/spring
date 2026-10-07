@@ -23,7 +23,16 @@ linux:
   maintainer: Romain Lavabre
   synopsis: Beautiful documentation kept in git workspaces
 deb:
+  # "spring" is taken in the Ubuntu archive (the Spring RTS engine).
+  packageName: spring-doc
   depends:
     - git
     - openssh-client
+  # Takes over from the packages published as "spring" up to 1.0.4. Bounded
+  # below 2 so that the Ubuntu package (106.x) is left alone.
+  fpm:
+    - --conflicts
+    - spring (<< 2)
+    - --replaces
+    - spring (<< 2)
 artifactName: ${name}-${version}-${arch}.${ext}

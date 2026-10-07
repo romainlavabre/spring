@@ -19,6 +19,10 @@ set -euo pipefail
 REPO=romainlavabre/spring
 NAME=spring
 TITLE="Spring"
+# The .deb package: "spring" is taken in the Ubuntu archive. Up to 1.0.4 it was
+# published as "spring", which spring-doc replaces.
+PACKAGE=spring-doc
+OLD_PACKAGE=spring
 
 APPIMAGE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/$NAME"
 APP_DIR="$APPIMAGE_DIR/app"
@@ -72,11 +76,14 @@ trap 'rm -rf "$WORK"' EXIT
 
 if $uninstall; then
     removed=false
-    if command -v dpkg >/dev/null && dpkg -s "$NAME" >/dev/null 2>&1; then
-        info "Removing the $NAME package…"
-        sudo_cmd apt-get remove -y "$NAME"
-        removed=true
-    fi
+    for pkg in "$PACKAGE" "$OLD_PACKAGE"; do
+        if command -v dpkg >/dev/null && dpkg -s "$pkg" >/dev/null 2>&1 \
+            && { [[ $pkg == "$PACKAGE" ]] || dpkg --compare-versions "$(dpkg-query -W -f='${Version}' "$pkg")" lt 2; }; then
+            info "Removing the $pkg package…"
+            sudo_cmd apt-get remove -y "$pkg"
+            removed=true
+        fi
+    done
     if [[ -e "$APP_DIR" || -e "$DESKTOP_FILE" ]]; then
         info "Removing $APPIMAGE_DIR…"
         rm -rf "$APP_DIR"
@@ -156,7 +163,7 @@ if [[ $kind == deb ]]; then
     chmod 644 "$WORK/$NAME.deb"
     chmod 755 "$WORK"
     sudo_cmd apt-get install -y --allow-downgrades "$WORK/$NAME.deb"
-    installed=$(dpkg-query -W -f='${Version}' "$NAME")
+    installed=$(dpkg-query -W -f='${Version}' "$PACKAGE")
     ok "$TITLE $installed installed: find it in your applications menu, or run \"$NAME\" (\"$NAME help\" for the command line)."
     exit 0
 fi

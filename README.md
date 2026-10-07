@@ -26,7 +26,8 @@ Linux x86_64, with `git` and `openssh-client` (dependencies of the `.deb`).
 curl -fsSL https://raw.githubusercontent.com/romainlavabre/spring/master/install.sh | bash
 ```
 
-Debian and Ubuntu get the `.deb` package (menu entry and `spring` command); other distributions get the AppImage unpacked
+Debian and Ubuntu get the `.deb` package, named `spring-doc` as `spring` is taken in the Ubuntu archive (menu entry and
+`spring` command); other distributions get the AppImage unpacked
 in `~/.local/share/spring`. `./install.sh --help` lists the options (a given version, a downloaded file, `--from-source`,
 `--uninstall`).
 
