@@ -1,4 +1,5 @@
 // Electron entry point: window, IPC registration and services.
+import { constants } from 'node:os'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import type { ZodType } from 'zod'
@@ -118,13 +119,33 @@ function startApp(): void {
 }
 
 /**
+ * An MCP client stops its server with SIGINT then SIGTERM. Nothing is pending in
+ * a command, so it leaves at once rather than through Chromium's browser
+ * shutdown. Chromium installs its handlers while starting up: these must come
+ * once the app is ready.
+ */
+function exitOnSignals(): void {
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
+    process.on(signal, () => app.exit(128 + constants.signals[signal]))
+  }
+}
+
+/**
  * `spring mcp`, `spring export …` and the other commands run in the terminal,
  * without window. Unlike the standalone Node CLI, they can print PDFs.
  */
 function startCli(args: string[]): void {
+  // A closing terminal hangs up its whole process group, Chromium's helper
+  // processes included. Without its zygote, the GPU process cannot be launched
+  // again and Chromium aborts ("GPU process isn't usable"): a SIGTRAP and a
+  // crash report each time a terminal or an IDE running `spring mcp` is closed.
+  // Without that limit, it keeps trying until the hangup, the client's signal
+  // or the end of stdin makes the command leave.
+  app.commandLine.appendSwitch('disable-gpu-process-crash-limit')
   void app
     .whenReady()
     .then(() => {
+      exitOnSignals()
       const registry = new JsonStore<WorkspaceState>(join(app.getPath('userData'), 'workspaces.json'), () => ({ repos: [], activeRepoId: null }))
       const assets = new AssetRoots((id) => registry.read().repos.find((r) => r.id === id)?.path ?? null)
       assets.serve()
